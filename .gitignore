@@ -1,0 +1,62 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+.pnp
+.pnp.js
+
+# Environment and secrets (ZERO-LEAKAGE SECURITY)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+serviceAccountKey.json
+google-services.json
+firebase-adminsdk*.json
+
+# Production and build artifacts
+dist/
+build/
+out/
+.next/
+.expo/
+.turbo/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Debug and system logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and IDE directories
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+*.sublime-project
+*.sublime-workspace
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Scratch and backups
+scratch/
+backup/
+*.bak
+*.tmp

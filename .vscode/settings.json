@@ -1,0 +1,22 @@
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.git": true,
+    "**/*.sqlite3*": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/*.sqlite3*": true
+  }
+}

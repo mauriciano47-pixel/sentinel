@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "usernamehw.errorlens",
+    "eamodio.gitlens",
+    "christian-kohler.npm-intellisense",
+    "redhat.vscode-yaml",
+    "google.google-antigravity"
+  ]
+}
