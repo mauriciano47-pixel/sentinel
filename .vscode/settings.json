@@ -1,23 +1,44 @@
 {
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+  // 🔇 Excluir cliente móvil nativo Android del análisis Java/Gradle de VS Code
+  // (El cliente Android se compila con Android Studio o Gradle CLI con el Android SDK)
+  "java.project.resourceFilters": [
+    "node_modules",
+    ".git",
+    "android"
+  ],
+  "java.import.exclusions": [
+    "**/android/**"
+  ],
+  "gradle.nestedProjects": false,
+  "gradle.autoDetect": "off",
+
+  // 🔇 Silenciar falsos positivos de validación
+  "html.validate.scripts": false,
+  "html.validate.styles": false,
+  "markdownlint.config": {
+    "default": false
+  },
+
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
     "**/build": true,
     "**/.git": true,
-    "**/*.sqlite3*": true
+    "**/*.sqlite3*": true,
+    "**/android/**": true
   },
   "files.watcherExclude": {
     "**/node_modules/**": true,
     "**/dist/**": true,
+    "**/android/**": true,
     "**/*.sqlite3*": true
   }
 }
+
 
