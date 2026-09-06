@@ -38,7 +38,7 @@ function enrichWithDeadline(reqRow) {
 router.get('/', authenticate, (req, res) => {
   try {
     const rawRequests = db.all(`
-      SELECT r.*, p.name as platform_name, p.category as platform_category, 
+      SELECT r.*, p.name as platform_name, p.category as platform_category,
              p.deletion_url, p.deletion_method, p.deletion_email,
              i.value as identity_value
       FROM deletion_requests r

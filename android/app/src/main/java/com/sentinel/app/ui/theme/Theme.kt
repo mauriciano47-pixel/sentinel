@@ -24,3 +24,4 @@ fun SentinelTheme(content: @Composable () -> Unit) {
         content = content
     )
 }
+

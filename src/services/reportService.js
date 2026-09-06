@@ -24,7 +24,7 @@ function generateFootprintPdf(userId) {
   };
 
   const identities = db.all(`
-    SELECT i.*, 
+    SELECT i.*,
       (SELECT COUNT(*) FROM breaches b WHERE b.identity_id = i.id) AS breach_count
     FROM identities i
     WHERE i.user_id = ? AND i.active = 1
@@ -79,24 +79,24 @@ function generateFootprintPdf(userId) {
   doc.rect(0, 0, doc.page.width, 100).fill(darkBg);
 
   doc.fillColor('#00E5FF')
-     .fontSize(22)
-     .font('Helvetica-Bold')
-     .text('SENTINEL', 50, 30);
+    .fontSize(22)
+    .font('Helvetica-Bold')
+    .text('SENTINEL', 50, 30);
 
   doc.fillColor('#94A3B8')
-     .fontSize(10)
-     .font('Helvetica')
-     .text('ORQUESTADOR DE PRIVACIDAD & SOBERANÍA DIGITAL', 50, 56);
+    .fontSize(10)
+    .font('Helvetica')
+    .text('ORQUESTADOR DE PRIVACIDAD & SOBERANÍA DIGITAL', 50, 56);
 
   doc.fillColor('#F8FAFC')
-     .fontSize(9)
-     .font('Helvetica')
-     .text(`EMISIÓN: ${new Date().toLocaleDateString('es-ES')} | CLASIFICACIÓN: CONFIDENCIAL`, doc.page.width - 320, 35, { align: 'right' });
+    .fontSize(9)
+    .font('Helvetica')
+    .text(`EMISIÓN: ${new Date().toLocaleDateString('es-ES')} | CLASIFICACIÓN: CONFIDENCIAL`, doc.page.width - 320, 35, { align: 'right' });
 
   doc.fillColor('#38BDF8')
-     .fontSize(9)
-     .font('Helvetica-Bold')
-     .text(`TITULAR: ${user.display_name} (${user.email})`, doc.page.width - 320, 50, { align: 'right' });
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text(`TITULAR: ${user.display_name} (${user.email})`, doc.page.width - 320, 50, { align: 'right' });
 
   doc.moveDown(4);
 
@@ -105,9 +105,9 @@ function generateFootprintPdf(userId) {
   doc.roundedRect(50, startY, doc.page.width - 100, 85, 8).fillAndStroke('#F1F5F9', '#CBD5E1');
 
   doc.fillColor(textDark)
-     .fontSize(13)
-     .font('Helvetica-Bold')
-     .text('DIAGNÓSTICO DE EXPOSICIÓN CIBERNÉTICA', 70, startY + 16);
+    .fontSize(13)
+    .font('Helvetica-Bold')
+    .text('DIAGNÓSTICO DE EXPOSICIÓN CIBERNÉTICA', 70, startY + 16);
 
   let riskLabel = 'BAJO';
   let riskColor = successGreen;
@@ -120,31 +120,31 @@ function generateFootprintPdf(userId) {
   }
 
   doc.fillColor(riskColor)
-     .fontSize(28)
-     .font('Helvetica-Bold')
-     .text(`${exposureScore}`, 70, startY + 38);
+    .fontSize(28)
+    .font('Helvetica-Bold')
+    .text(`${exposureScore}`, 70, startY + 38);
 
   doc.fillColor(textMuted)
-     .fontSize(11)
-     .font('Helvetica')
-     .text('/ 100', 125, startY + 50);
+    .fontSize(11)
+    .font('Helvetica')
+    .text('/ 100', 125, startY + 50);
 
   doc.fillColor(riskColor)
-     .fontSize(12)
-     .font('Helvetica-Bold')
-     .text(`NIVEL DE RIESGO: ${riskLabel}`, 170, startY + 44);
+    .fontSize(12)
+    .font('Helvetica-Bold')
+    .text(`NIVEL DE RIESGO: ${riskLabel}`, 170, startY + 44);
 
   doc.fillColor(textMuted)
-     .fontSize(9)
-     .font('Helvetica')
-     .text(`Identidades activas: ${identities.length}  |  Brechas públicas: ${breaches.length}  |  Borrados completados: ${completedDeletions}`, 170, startY + 60);
+    .fontSize(9)
+    .font('Helvetica')
+    .text(`Identidades activas: ${identities.length}  |  Brechas públicas: ${breaches.length}  |  Borrados completados: ${completedDeletions}`, 170, startY + 60);
 
   // 3. IDENTIDADES MONITOREADAS
   let currentY = startY + 110;
   doc.fillColor(primaryColor)
-     .fontSize(12)
-     .font('Helvetica-Bold')
-     .text('1. IDENTIDADES MONITOREADAS (SUPERFICIE DE CONTACTO)', 50, currentY);
+    .fontSize(12)
+    .font('Helvetica-Bold')
+    .text('1. IDENTIDADES MONITOREADAS (SUPERFICIE DE CONTACTO)', 50, currentY);
 
   currentY += 20;
   if (identities.length === 0) {
@@ -162,9 +162,9 @@ function generateFootprintPdf(userId) {
   // 4. HISTORIAL DE FILTRACIONES
   currentY += 15;
   doc.fillColor(primaryColor)
-     .fontSize(12)
-     .font('Helvetica-Bold')
-     .text('2. REGISTRO DE FILTRACIONES PÚBLICAS & STEALER LOGS', 50, currentY);
+    .fontSize(12)
+    .font('Helvetica-Bold')
+    .text('2. REGISTRO DE FILTRACIONES PÚBLICAS & STEALER LOGS', 50, currentY);
 
   currentY += 20;
   if (breaches.length === 0) {
@@ -181,9 +181,9 @@ function generateFootprintPdf(userId) {
   // 5. MOTOR DE ELIMINACIÓN RGPD (PLAZO LEGAL DE 30 DÍAS)
   currentY += 15;
   doc.fillColor(primaryColor)
-     .fontSize(12)
-     .font('Helvetica-Bold')
-     .text('3. TRAZABILIDAD DE SOLICITUDES DE BORRADO (ART. 17 RGPD)', 50, currentY);
+    .fontSize(12)
+    .font('Helvetica-Bold')
+    .text('3. TRAZABILIDAD DE SOLICITUDES DE BORRADO (ART. 17 RGPD)', 50, currentY);
 
   currentY += 20;
   if (requests.length === 0) {
@@ -219,24 +219,25 @@ function generateFootprintPdf(userId) {
 
   doc.roundedRect(50, currentY, doc.page.width - 100, 65, 6).fill('#F8FAFC');
   doc.fillColor(textDark)
-     .fontSize(9)
-     .font('Helvetica-Bold')
-     .text('RECOMENDACIONES PREVENTIVAS DE SEGURIDAD', 65, currentY + 12);
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('RECOMENDACIONES PREVENTIVAS DE SEGURIDAD', 65, currentY + 12);
 
   doc.fillColor(textMuted)
-     .fontSize(8)
-     .font('Helvetica')
-     .text('1. Habilitar llaves de seguridad física o 2FA en los servicios críticos.', 65, currentY + 28)
-     .text('2. Exigir confirmación legal por escrito a aquellas plataformas con plazo de 30 días vencido.', 65, currentY + 40);
+    .fontSize(8)
+    .font('Helvetica')
+    .text('1. Habilitar llaves de seguridad física o 2FA en los servicios críticos.', 65, currentY + 28)
+    .text('2. Exigir confirmación legal por escrito a aquellas plataformas con plazo de 30 días vencido.', 65, currentY + 40);
 
   // Disclaimer legal
   doc.fillColor('#94A3B8')
-     .fontSize(7)
-     .font('Helvetica-Oblique')
-     .text('Documento emitido de forma automatizada por SENTINEL Privacy Suite. Las solicitudes se amparan en el Reglamento General de Protección de Datos (UE 2016/679) y normativas homólogas de soberanía digital.', 50, doc.page.height - 40, { align: 'center', width: doc.page.width - 100 });
+    .fontSize(7)
+    .font('Helvetica-Oblique')
+    .text('Documento emitido de forma automatizada por SENTINEL Privacy Suite. Las solicitudes se amparan en el Reglamento General de Protección de Datos (UE 2016/679) y normativas homólogas de soberanía digital.', 50, doc.page.height - 40, { align: 'center', width: doc.page.width - 100 });
 
   doc.end();
   return doc;
 }
 
 module.exports = { generateFootprintPdf };
+

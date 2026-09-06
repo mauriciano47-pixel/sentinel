@@ -20,3 +20,4 @@ router.get('/footprint-pdf', authenticate, (req, res) => {
 });
 
 module.exports = router;
+

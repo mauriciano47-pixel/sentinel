@@ -8,3 +8,4 @@ class SentinelApplication : Application() {
         // Inicialización de telemetría y configuraciones de seguridad
     }
 }
+

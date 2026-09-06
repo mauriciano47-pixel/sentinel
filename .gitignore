@@ -23,6 +23,9 @@ out/
 .next/
 .expo/
 .turbo/
+.gradle/
+**/.gradle/
+**/build/
 
 # Database files
 *.sqlite

@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SENTINEL — Guardián de Privacidad & Derecho al Olvido</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
   <div class="cyber-container">
     <!-- Header / Navbar -->
@@ -16,7 +20,7 @@
       <div class="brand">
         <div class="shield-badge">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
         </div>
         <div>
@@ -71,11 +75,13 @@
           <h2>Escáner de Filtraciones (HIBP)</h2>
           <span class="pill-secure">Zero-Knowledge</span>
         </div>
-        <p class="card-desc">Ejecuta una auditoría profunda sobre tus correos registrados para detectar brechas públicas y stealer logs.</p>
+        <p class="card-desc">Ejecuta una auditoría profunda sobre tus correos registrados para detectar brechas públicas
+          y stealer logs.</p>
         <div class="scan-action-box">
           <button id="btn-run-scan" class="btn btn-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/>
+              <circle cx="12" cy="12" r="10" />
+              <path d="m10 15 5-3-5-3v6z" />
             </svg>
             <span>Iniciar Escaneo Global</span>
           </button>
@@ -87,7 +93,8 @@
           <h3>Auditor de Claves (k-Anonymity)</h3>
           <p class="micro-text">Comprueba si una contraseña fue vulnerada. La clave nunca sale de tu equipo.</p>
           <div class="input-group">
-            <input type="password" id="input-pwd" placeholder="Ingresa contraseña a auditar...">
+            <input type="password" id="input-pwd" placeholder="Ingresa contraseña a auditar..."
+              aria-label="Contraseña a auditar">
             <button id="btn-check-pwd" class="btn btn-secondary">Auditar</button>
           </div>
           <div id="pwd-result" class="pwd-feedback"></div>
@@ -114,8 +121,10 @@
             <p class="card-desc">Orquesta solicitudes directas y desvinculación definitiva en plataformas web.</p>
           </div>
           <div class="filter-controls" style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <input type="text" id="filter-search" class="cyber-input" placeholder="Buscar plataforma (ej. Tinder, PayPal)..." style="min-width: 220px;">
-            <select id="filter-category" class="cyber-select">
+            <input type="text" id="filter-search" class="cyber-input"
+              placeholder="Buscar plataforma (ej. Tinder, PayPal)..." style="min-width: 220px;"
+              aria-label="Buscar plataforma">
+            <select id="filter-category" class="cyber-select" aria-label="Filtrar por categoría">
               <option value="">Todas las categorías (50+)</option>
               <option value="social">Redes Sociales</option>
               <option value="citas">Apps de Citas</option>
@@ -150,21 +159,22 @@
       <div class="modal-card">
         <div class="modal-header">
           <h3>Añadir Identidad para Monitoreo</h3>
-          <button id="btn-close-modal" class="btn-icon">&times;</button>
+          <button id="btn-close-modal" class="btn-icon" aria-label="Cerrar modal">&times;</button>
         </div>
         <div class="modal-body">
-          <label>Tipo de Identidad</label>
+          <label for="new-id-type">Tipo de Identidad</label>
           <select id="new-id-type" class="cyber-select full-width">
             <option value="email">Correo Electrónico</option>
             <option value="phone">Número Telefónico</option>
             <option value="username">Nombre de Usuario</option>
           </select>
 
-          <label>Valor / Dirección</label>
+          <label for="new-id-value">Valor / Dirección</label>
           <input type="text" id="new-id-value" class="cyber-input full-width" placeholder="ejemplo@correo.com">
 
-          <label>Etiqueta (Opcional)</label>
-          <input type="text" id="new-id-label" class="cyber-input full-width" placeholder="ej. Personal, Trabajo, Compras">
+          <label for="new-id-label">Etiqueta (Opcional)</label>
+          <input type="text" id="new-id-label" class="cyber-input full-width"
+            placeholder="ej. Personal, Trabajo, Compras">
         </div>
         <div class="modal-footer">
           <button id="btn-cancel-id" class="btn btn-secondary">Cancelar</button>
@@ -178,12 +188,12 @@
       <div class="modal-card modal-lg">
         <div class="modal-header">
           <h3 id="gdpr-modal-title">Solicitud de Supresión RGPD</h3>
-          <button id="btn-close-gdpr-modal" class="btn-icon">&times;</button>
+          <button id="btn-close-gdpr-modal" class="btn-icon" aria-label="Cerrar modal">&times;</button>
         </div>
         <div class="modal-body">
           <p id="gdpr-instructions" class="instructions-text"></p>
           <div class="gdpr-template-box">
-            <label>Plantilla Formal Generada (Lista para copiar o enviar):</label>
+            <label for="gdpr-template-text">Plantilla Formal Generada (Lista para copiar o enviar):</label>
             <textarea id="gdpr-template-text" class="cyber-textarea" readonly rows="8"></textarea>
           </div>
           <div class="action-links" id="gdpr-action-links"></div>
@@ -202,5 +212,5 @@
 
   <script src="app.js"></script>
 </body>
-</html>
 
+</html>

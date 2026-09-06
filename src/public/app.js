@@ -145,8 +145,8 @@ async function loadIdentities() {
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
           ${id.breach_count > 0
-            ? `<span class="badge-tag" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">${id.breach_count} brechas detectadas</span>`
-            : `<span class="badge-tag" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">Protegido</span>`}
+        ? `<span class="badge-tag" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">${id.breach_count} brechas detectadas</span>`
+        : `<span class="badge-tag" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">Protegido</span>`}
           <button class="btn-icon" onclick="deleteIdentity('${id.id}')" title="Eliminar">&times;</button>
         </div>
       </div>
@@ -192,7 +192,7 @@ async function saveNewIdentity() {
 }
 
 // 5. Borrar Identidad
-window.deleteIdentity = async function(id) {
+window.deleteIdentity = async function (id) {
   if (!confirm('¿Deseas desvincular esta identidad del monitoreo?')) return;
   try {
     await fetch(`${API_BASE}/identities/${id}`, { method: 'DELETE' });
@@ -266,7 +266,7 @@ async function loadPlatforms(category = '', search = '') {
               ${statusBadge}
             </div>
             <div class="diff-pills" title="Dificultad de borrado: ${p.difficulty}/5">
-              ${[1,2,3,4,5].map(d => `<div class="diff-dot ${d <= p.difficulty ? 'active' : ''}"></div>`).join('')}
+              ${[1, 2, 3, 4, 5].map(d => `<div class="diff-dot ${d <= p.difficulty ? 'active' : ''}"></div>`).join('')}
             </div>
           </div>
           <div style="margin-top: 16px; display: flex; gap: 8px;">
@@ -284,7 +284,7 @@ async function loadPlatforms(category = '', search = '') {
 }
 
 // 8. Abrir Modal GDPR
-window.openGdprModal = async function(platformId) {
+window.openGdprModal = async function (platformId) {
   try {
     const res = await fetch(`${API_BASE}/platforms/${platformId}`);
     const data = await res.json();
@@ -376,8 +376,8 @@ async function loadRequests() {
           </div>
           <div>
             ${r.status !== 'completed'
-              ? `<button class="btn btn-sm btn-outline" onclick="completeRequest('${r.id}')">Confirmar Supresión</button>`
-              : '<span style="color: #10b981; font-weight: 700; font-size: 0.85rem;">Completada</span>'}
+          ? `<button class="btn btn-sm btn-outline" onclick="completeRequest('${r.id}')">Confirmar Supresión</button>`
+          : '<span style="color: #10b981; font-weight: 700; font-size: 0.85rem;">Completada</span>'}
           </div>
         </div>
       `;
@@ -388,7 +388,7 @@ async function loadRequests() {
 }
 
 // 11. Marcar como completada
-window.completeRequest = async function(requestId) {
+window.completeRequest = async function (requestId) {
   try {
     await fetch(`${API_BASE}/requests/${requestId}`, {
       method: 'PATCH',

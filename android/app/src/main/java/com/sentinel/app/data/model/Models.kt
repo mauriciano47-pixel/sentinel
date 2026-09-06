@@ -83,3 +83,4 @@ data class PlatformsResponse(
 data class RequestsResponse(
     val requests: List<DeletionRequest>
 )
+
