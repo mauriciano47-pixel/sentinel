@@ -4,7 +4,6 @@
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "terminal.integrated.defaultProfile.windows": "PowerShell",
-
   // 🔇 Excluir cliente móvil nativo Android del análisis Java/Gradle de VS Code
   // (El cliente Android se compila con Android Studio o Gradle CLI con el Android SDK)
   "java.project.resourceFilters": [
@@ -17,14 +16,12 @@
   ],
   "gradle.nestedProjects": false,
   "gradle.autoDetect": "off",
-
   // 🔇 Silenciar falsos positivos de validación
   "html.validate.scripts": false,
   "html.validate.styles": false,
   "markdownlint.config": {
     "default": false
   },
-
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
@@ -40,5 +37,3 @@
     "**/*.sqlite3*": true
   }
 }
-
-
