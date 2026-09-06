@@ -12,7 +12,7 @@ async function authenticate(req, res, next) {
   if (!authHeader && (!process.env.FIREBASE_PROJECT_ID || customUserId)) {
     const userId = customUserId || 'user_local_soberano';
     const user = db.get('SELECT * FROM users WHERE id = ?', [userId]);
-    
+
     if (user) {
       req.user = user;
       return next();
@@ -28,7 +28,7 @@ async function authenticate(req, res, next) {
       try {
         const admin = require('firebase-admin');
         const decoded = await admin.auth().verifyIdToken(token);
-        
+
         // Buscar o crear usuario en SQLite local
         let user = db.get('SELECT * FROM users WHERE firebase_uid = ?', [decoded.uid]);
         if (!user) {
@@ -67,3 +67,4 @@ async function authenticate(req, res, next) {
 }
 
 module.exports = { authenticate };
+

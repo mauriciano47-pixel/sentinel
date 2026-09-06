@@ -3,10 +3,41 @@ const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const db = require('../config/db');
 
-// GET /api/v1/requests - Listar solicitudes del usuario
+const LEGAL_DEADLINE_DAYS = 30; // Plazo estipulado por Art. 12 y 17 RGPD
+
+// Función auxiliar para calcular métricas de plazo legal
+function enrichWithDeadline(reqRow) {
+  const sentTime = reqRow.sent_at ? new Date(reqRow.sent_at).getTime() : new Date(reqRow.created_at).getTime();
+  const deadlineDate = new Date(sentTime + (LEGAL_DEADLINE_DAYS * 24 * 60 * 60 * 1000));
+  const now = Date.now();
+  const diffMs = deadlineDate.getTime() - now;
+  const daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  let urgencyStatus = 'normal';
+  if (reqRow.status === 'completed') {
+    urgencyStatus = 'completed';
+  } else if (daysRemaining < 0) {
+    urgencyStatus = 'overdue'; // Plazo legal vencido
+  } else if (daysRemaining <= 5) {
+    urgencyStatus = 'urgent'; // Menos de 5 días
+  } else if (daysRemaining <= 15) {
+    urgencyStatus = 'warning'; // Menos de 15 días
+  }
+
+  return {
+    ...reqRow,
+    legalDeadlineDays: LEGAL_DEADLINE_DAYS,
+    deadlineDate: deadlineDate.toISOString(),
+    daysRemaining: reqRow.status === 'completed' ? 0 : daysRemaining,
+    urgencyStatus,
+    isOverdue: reqRow.status !== 'completed' && daysRemaining < 0
+  };
+}
+
+// GET /api/v1/requests - Listar solicitudes con seguimiento de 30 días
 router.get('/', authenticate, (req, res) => {
   try {
-    const requests = db.all(`
+    const rawRequests = db.all(`
       SELECT r.*, p.name as platform_name, p.category as platform_category, 
              p.deletion_url, p.deletion_method, p.deletion_email,
              i.value as identity_value
@@ -17,7 +48,20 @@ router.get('/', authenticate, (req, res) => {
       ORDER BY r.created_at DESC
     `, [req.user.id]);
 
-    res.json({ requests });
+    const enrichedRequests = rawRequests.map(enrichWithDeadline);
+
+    const summary = {
+      total: enrichedRequests.length,
+      completed: enrichedRequests.filter(r => r.status === 'completed').length,
+      pending: enrichedRequests.filter(r => r.status !== 'completed').length,
+      urgent: enrichedRequests.filter(r => r.urgencyStatus === 'urgent').length,
+      overdue: enrichedRequests.filter(r => r.urgencyStatus === 'overdue').length
+    };
+
+    res.json({
+      summary,
+      requests: enrichedRequests
+    });
   } catch (err) {
     res.status(500).json({ error: 'Error obteniendo solicitudes de eliminación', details: err.message });
   }
@@ -37,7 +81,6 @@ router.post('/', authenticate, (req, res) => {
       return res.status(404).json({ error: 'Plataforma no encontrada' });
     }
 
-    // Verificar si ya existe una solicitud abierta para esta plataforma
     const existing = db.get(
       'SELECT id, status FROM deletion_requests WHERE user_id = ? AND platform_id = ?',
       [req.user.id, platformId]
@@ -56,8 +99,8 @@ router.post('/', authenticate, (req, res) => {
       const updated = db.get('SELECT * FROM deletion_requests WHERE id = ?', [existing.id]);
       return res.json({
         success: true,
-        message: `Solicitud para ${platform.name} actualizada`,
-        request: updated
+        message: `Solicitud para ${platform.name} actualizada con nuevo plazo de 30 días`,
+        request: enrichWithDeadline(updated)
       });
     }
 
@@ -72,8 +115,8 @@ router.post('/', authenticate, (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: `Solicitud de eliminación para ${platform.name} registrada`,
-      request: created
+      message: `Solicitud de eliminación para ${platform.name} registrada (Plazo legal de 30 días iniciado)`,
+      request: enrichWithDeadline(created)
     });
   } catch (err) {
     res.status(500).json({ error: 'Error creando solicitud de borrado', details: err.message });
@@ -110,7 +153,7 @@ router.patch('/:id', authenticate, (req, res) => {
     res.json({
       success: true,
       message: 'Estado de solicitud actualizado',
-      request: updated
+      request: enrichWithDeadline(updated)
     });
   } catch (err) {
     res.status(500).json({ error: 'Error actualizando solicitud', details: err.message });

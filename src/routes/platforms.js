@@ -75,3 +75,4 @@ router.get('/:id', authenticate, (req, res) => {
 });
 
 module.exports = router;
+

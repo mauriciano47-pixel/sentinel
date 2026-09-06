@@ -31,3 +31,4 @@ const generalLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 120 })
 const scanLimiter = createRateLimiter({ windowMs: 60 * 1000, max: 20, message: 'Límite de escaneos alcanzado. Espere un momento.' });
 
 module.exports = { generalLimiter, scanLimiter };
+

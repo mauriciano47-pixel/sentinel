@@ -7,7 +7,7 @@ const db = require('../config/db');
 router.get('/', authenticate, (req, res) => {
   try {
     const identities = db.all(`
-      SELECT i.*, 
+      SELECT i.*,
         (SELECT COUNT(*) FROM breaches b WHERE b.identity_id = i.id) AS breach_count
       FROM identities i
       WHERE i.user_id = ? AND i.active = 1
@@ -94,3 +94,4 @@ router.delete('/:id', authenticate, (req, res) => {
 });
 
 module.exports = router;
+

@@ -10,8 +10,8 @@ router.get('/me', authenticate, (req, res) => {
     const stats = {
       identitiesCount: db.get('SELECT COUNT(*) as c FROM identities WHERE user_id = ? AND active = 1', [user.id]).c,
       breachesCount: db.get(`
-        SELECT COUNT(*) as c FROM breaches b 
-        JOIN identities i ON b.identity_id = i.id 
+        SELECT COUNT(*) as c FROM breaches b
+        JOIN identities i ON b.identity_id = i.id
         WHERE i.user_id = ? AND i.active = 1
       `, [user.id]).c,
       deletionRequestsCount: db.get('SELECT COUNT(*) as c FROM deletion_requests WHERE user_id = ?', [user.id]).c,

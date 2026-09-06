@@ -11,6 +11,7 @@ const identitiesRoutes = require('./routes/identities');
 const scanRoutes = require('./routes/scan');
 const platformsRoutes = require('./routes/platforms');
 const requestsRoutes = require('./routes/requests');
+const reportsRoutes = require('./routes/reports');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/v1/identities', identitiesRoutes);
 app.use('/api/v1/scan', scanRoutes);
 app.use('/api/v1/platforms', platformsRoutes);
 app.use('/api/v1/requests', requestsRoutes);
+app.use('/api/v1/reports', reportsRoutes);
 
 // 4. Endpoint de Salud / Diagnóstico
 app.get('/health', (req, res) => {
@@ -101,3 +103,4 @@ if (require.main === module) {
 }
 
 module.exports = { app, startServer };
+

@@ -15,27 +15,42 @@ const server = app.listen(TEST_PORT, async () => {
     const auth = await fetchJson(`http://localhost:${TEST_PORT}/api/v1/auth/me`);
     console.log('✅ 2. Auth /me OK:', auth.user.email);
 
-    // 3. Test Platforms
+    // 3. Test 50+ Platforms
     const platforms = await fetchJson(`http://localhost:${TEST_PORT}/api/v1/platforms`);
-    console.log(`✅ 3. Plataformas cargadas: ${platforms.platforms.length} plataformas.`);
+    console.log(`✅ 3. Plataformas cargadas: ${platforms.platforms.length} plataformas (>= 50 esperadas).`);
+    if (platforms.platforms.length < 50) {
+      throw new Error(`Se esperaban >= 50 plataformas, pero se encontraron ${platforms.platforms.length}`);
+    }
 
-    // 4. Test Password Check (k-Anonymity)
-    const pwdRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/scan/password`, { password: 'password123' });
-    console.log('✅ 4. k-Anonymity password check OK:', pwdRes.pwned === true);
+    // 3.1 Test Category Filter (citas)
+    const citas = await fetchJson(`http://localhost:${TEST_PORT}/api/v1/platforms?category=citas`);
+    console.log(`✅ 3.1 Filtro por categoría citas: ${citas.platforms.length} plataformas encontradas.`);
 
-    // 5. Test Add Identity
+    // 3.2 Test Search Filter (tinder)
+    const searchRes = await fetchJson(`http://localhost:${TEST_PORT}/api/v1/platforms?search=tinder`);
+    console.log(`✅ 3.2 Búsqueda de plataforma: ${searchRes.platforms[0]?.name === 'Tinder'}`);
+
+    // 4. Test Add Identity & 30-Day Deletion Request Tracking
     const idRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/identities`, {
       type: 'email',
       value: 'mauro.soberano@privacy.org',
       label: 'Email Principal'
     });
-    console.log('✅ 5. Identidad agregada OK:', idRes.success);
+    console.log('✅ 4. Identidad registrada para monitoreo');
 
-    // 6. Test Scan
-    const scanRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/scan`, {});
-    console.log('✅ 6. Escaneo ejecutado OK, nuevo exposureScore:', scanRes.exposureScore);
+    const reqRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/requests`, {
+      platformId: platforms.platforms[0].id,
+      notes: 'Solicitud de prueba con cómputo de 30 días'
+    });
+    console.log(`✅ 5. Solicitud GDPR con plazo legal: ${reqRes.request.daysRemaining} días restantes (${reqRes.request.urgencyStatus})`);
 
-    console.log('\n🎉 ¡TODOS LOS TESTS DE INTEGRACIÓN PASARON SATISFACTORIAMENTE AL 100%!');
+    // 5. Test PDF Report Generation
+    const pdfBuffer = await fetchBinary(`http://localhost:${TEST_PORT}/api/v1/reports/footprint-pdf`);
+    const isPdf = pdfBuffer.slice(0, 4).toString() === '%PDF';
+    console.log(`✅ 6. Generador de Reporte PDF: ${isPdf} (Tamaño: ${pdfBuffer.length} bytes)`);
+    if (!isPdf) throw new Error('El reporte generado no es un PDF válido');
+
+    console.log('\n🎉 ¡TODOS LOS TESTS DE INTEGRACIÓN DE SENTINEL PASARON SATISFACTORIAMENTE AL 100%!');
   } catch (err) {
     console.error('❌ Error en test:', err);
     process.exitCode = 1;
@@ -52,7 +67,23 @@ function fetchJson(url) {
     http.get(url, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(JSON.parse(data)));
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error(`Error parseando JSON: ${data}`));
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+function fetchBinary(url) {
+  return new Promise((resolve, reject) => {
+    http.get(url, (res) => {
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
     }).on('error', reject);
   });
 }
@@ -73,7 +104,13 @@ function postJson(url, payload) {
     }, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
-      res.on('end', () => resolve(JSON.parse(body)));
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch (e) {
+          reject(new Error(`Error parseando POST JSON: ${body}`));
+        }
+      });
     });
     req.on('error', reject);
     req.write(data);

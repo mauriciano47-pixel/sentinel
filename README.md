@@ -70,5 +70,6 @@ Abre tu navegador en `http://localhost:3001` para acceder a la consola central:
 ---
 
 ## 🧠 Cerebro Obsidian
-La bitácora técnica, arquitectura, flujos de datos y ficha de presentación ejecutiva se encuentran sincronizados en:  
+La bitácora técnica, arquitectura, flujos de datos y ficha de presentación ejecutiva se encuentran sincronizados en:
 `C:\Users\mauro\OneDrive\Desktop\Cerebros_Obsidian\cerebro_sentinel\`
+

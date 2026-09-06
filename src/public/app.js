@@ -52,10 +52,30 @@ function setupEventListeners() {
   document.getElementById('btn-close-gdpr').addEventListener('click', () => gdprModal.classList.add('hidden'));
   document.getElementById('btn-mark-sent').addEventListener('click', markGdprRequestSent);
 
-  // Filtro de plataformas
-  document.getElementById('filter-category').addEventListener('change', (e) => {
-    loadPlatforms(e.target.value);
-  });
+  // Exportar Reporte PDF
+  const btnExportPdf = document.getElementById('btn-export-pdf');
+  if (btnExportPdf) {
+    btnExportPdf.addEventListener('click', () => {
+      window.location.href = `${API_BASE}/reports/footprint-pdf`;
+    });
+  }
+
+  // Filtro de plataformas y buscador en tiempo real
+  const filterCat = document.getElementById('filter-category');
+  const filterSearch = document.getElementById('filter-search');
+
+  function triggerFilter() {
+    loadPlatforms(filterCat ? filterCat.value : '', filterSearch ? filterSearch.value.trim() : '');
+  }
+
+  if (filterCat) filterCat.addEventListener('change', triggerFilter);
+  if (filterSearch) {
+    let debounceTimer = null;
+    filterSearch.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(triggerFilter, 250);
+    });
+  }
 }
 
 // 1. Cargar Perfil
@@ -80,7 +100,7 @@ async function loadExposureScore() {
     elScore.textContent = data.score;
     elRiskBadge.textContent = `Nivel de Riesgo: ${data.riskLevel}`;
     elRiskBadge.style.color = data.riskColor;
-    
+
     // Gauge ring border color
     document.querySelector('.gauge-ring').style.borderColor = data.riskColor;
     document.querySelector('.gauge-ring').style.boxShadow = `0 0 20px ${data.riskColor}40`;
@@ -124,8 +144,8 @@ async function loadIdentities() {
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
-          ${id.breach_count > 0 
-            ? `<span class="badge-tag" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">${id.breach_count} brechas detectadas</span>` 
+          ${id.breach_count > 0
+            ? `<span class="badge-tag" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">${id.breach_count} brechas detectadas</span>`
             : `<span class="badge-tag" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">Protegido</span>`}
           <button class="btn-icon" onclick="deleteIdentity('${id.id}')" title="Eliminar">&times;</button>
         </div>
@@ -208,15 +228,19 @@ async function runGlobalScan() {
   }
 }
 
-// 7. Cargar Catálogo de Plataformas
-async function loadPlatforms(category = '') {
+// 7. Cargar Catálogo de Plataformas (50+ servicios con filtros)
+async function loadPlatforms(category = '', search = '') {
   try {
-    const url = category ? `${API_BASE}/platforms?category=${category}` : `${API_BASE}/platforms`;
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (search) params.append('search', search);
+
+    const url = `${API_BASE}/platforms?${params.toString()}`;
     const res = await fetch(url);
     const data = await res.json();
 
     if (!data.platforms || data.platforms.length === 0) {
-      elPlatforms.innerHTML = '<div class="skeleton-loader">No hay plataformas en esta categoría.</div>';
+      elPlatforms.innerHTML = '<div class="skeleton-loader">No se encontraron plataformas que coincidan con la búsqueda.</div>';
       return;
     }
 
@@ -313,7 +337,7 @@ async function markGdprRequestSent() {
   }
 }
 
-// 10. Cargar Trazabilidad de Solicitudes
+// 10. Cargar Trazabilidad de Solicitudes con Plazo de 30 Días
 async function loadRequests() {
   try {
     const res = await fetch(`${API_BASE}/requests`);
@@ -324,20 +348,40 @@ async function loadRequests() {
       return;
     }
 
-    elRequests.innerHTML = data.requests.map(r => `
-      <div class="identity-row">
-        <div>
-          <strong>${escapeHtml(r.platform_name)}</strong>
-          <span class="type-tag" style="margin-left: 8px;">${r.status}</span>
-          <div class="identity-label">Enviada: ${new Date(r.sent_at || r.created_at).toLocaleDateString()}</div>
+    elRequests.innerHTML = data.requests.map(r => {
+      let deadlineBadge = '';
+      if (r.status === 'completed') {
+        deadlineBadge = '<span class="badge-tag" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">✓ Datos Purgados</span>';
+      } else if (r.urgencyStatus === 'overdue') {
+        deadlineBadge = `<span class="badge-tag" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.6); background: rgba(239, 68, 68, 0.15);">🚨 Vencido (${Math.abs(r.daysRemaining)}d de retraso - Art. 12 RGPD)</span>`;
+      } else if (r.urgencyStatus === 'urgent') {
+        deadlineBadge = `<span class="badge-tag" style="color: #f97316; border-color: rgba(249, 115, 22, 0.5);">⚠️ ${r.daysRemaining} días restantes</span>`;
+      } else if (r.urgencyStatus === 'warning') {
+        deadlineBadge = `<span class="badge-tag" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.5);">⏳ ${r.daysRemaining} días restantes</span>`;
+      } else {
+        deadlineBadge = `<span class="badge-tag" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">⏳ ${r.daysRemaining} días restantes (Plazo 30d)</span>`;
+      }
+
+      return `
+        <div class="identity-row">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <strong>${escapeHtml(r.platform_name)}</strong>
+              <span class="type-tag">${escapeHtml(r.platform_category)}</span>
+              ${deadlineBadge}
+            </div>
+            <div class="identity-label">
+              Enviada: ${new Date(r.sent_at || r.created_at).toLocaleDateString()} | Límite legal: ${new Date(r.deadlineDate).toLocaleDateString()}
+            </div>
+          </div>
+          <div>
+            ${r.status !== 'completed'
+              ? `<button class="btn btn-sm btn-outline" onclick="completeRequest('${r.id}')">Confirmar Supresión</button>`
+              : '<span style="color: #10b981; font-weight: 700; font-size: 0.85rem;">Completada</span>'}
+          </div>
         </div>
-        <div>
-          ${r.status !== 'completed' 
-            ? `<button class="btn btn-sm btn-outline" onclick="completeRequest('${r.id}')">Marcar Confirmada</button>`
-            : '<span style="color: #10b981; font-weight: 700; font-size: 0.85rem;">✓ Datos Purgados</span>'}
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (err) {
     elRequests.innerHTML = '<div class="skeleton-loader">Error cargando solicitudes.</div>';
   }
@@ -398,3 +442,4 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+

@@ -1,0 +1,6 @@
+<resources>
+    <color name="bg_oled">#05080E</color>
+    <color name="primary_electric">#00E5FF</color>
+    <color name="primary_royal">#2563EB</color>
+    <color name="accent_emerald">#10B981</color>
+</resources>

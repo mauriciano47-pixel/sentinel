@@ -25,6 +25,7 @@
         </div>
       </div>
       <div class="header-status">
+        <button id="btn-export-pdf" class="btn btn-sm btn-outline" style="margin-right: 12px;">📥 Reporte PDF</button>
         <span class="status-indicator live"></span>
         <span id="user-badge" class="badge-tag">Mauro (Arconte Soberano)</span>
       </div>
@@ -112,14 +113,17 @@
             <h2>Motor de Eliminación (Derecho al Olvido Art. 17)</h2>
             <p class="card-desc">Orquesta solicitudes directas y desvinculación definitiva en plataformas web.</p>
           </div>
-          <div class="filter-controls">
+          <div class="filter-controls" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="filter-search" class="cyber-input" placeholder="Buscar plataforma (ej. Tinder, PayPal)..." style="min-width: 220px;">
             <select id="filter-category" class="cyber-select">
-              <option value="">Todas las categorías</option>
+              <option value="">Todas las categorías (50+)</option>
               <option value="social">Redes Sociales</option>
-              <option value="servicios">Servicios Cloud</option>
-              <option value="comercio">Comercio Electrónico</option>
-              <option value="entretenimiento">Entretenimiento</option>
-              <option value="comunidad">Comunidades</option>
+              <option value="citas">Apps de Citas</option>
+              <option value="bigtech">Big Tech & Cloud</option>
+              <option value="streaming">Streaming & Videojuegos</option>
+              <option value="fintech_comercio">Fintech & Comercio</option>
+              <option value="mensajeria_comunidad">Mensajería & Comunidad</option>
+              <option value="data_brokers">Brokers de Datos (Privacidad Crítica)</option>
             </select>
           </div>
         </div>
@@ -199,3 +203,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
