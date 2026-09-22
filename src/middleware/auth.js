@@ -47,6 +47,13 @@ async function authenticate(req, res, next) {
       }
     }
 
+    // Modo token / ID de usuario registrado (Bearer <userId>)
+    const userByToken = db.get('SELECT * FROM users WHERE id = ?', [token]);
+    if (userByToken) {
+      req.user = userByToken;
+      return next();
+    }
+
     // Modo token local de prueba (Bearer local_master_token)
     if (token === 'local_master_token') {
       req.user = db.get('SELECT * FROM users WHERE id = ?', ['user_local_soberano']);
