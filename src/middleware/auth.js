@@ -7,6 +7,16 @@ const db = require('../config/db');
 async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   const customUserId = req.headers['x-user-id'];
+  const queryToken = req.query && req.query.token ? String(req.query.token).trim() : null;
+
+  // 0. Modo Token vía Query Param (p.ej. descargas directas de PDFs o webhooks)
+  if (queryToken) {
+    const userByQuery = db.get('SELECT * FROM users WHERE id = ?', [queryToken]);
+    if (userByQuery) {
+      req.user = userByQuery;
+      return next();
+    }
+  }
 
   // 1. Modo Local / Soberano de Desarrollo
   if (!authHeader && (!process.env.FIREBASE_PROJECT_ID || customUserId)) {

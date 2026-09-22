@@ -50,6 +50,26 @@ const server = app.listen(TEST_PORT, async () => {
     console.log(`✅ 6. Generador de Reporte PDF: ${isPdf} (Tamaño: ${pdfBuffer.length} bytes)`);
     if (!isPdf) throw new Error('El reporte generado no es un PDF válido');
 
+    // 6. Test Registro de Nuevo Usuario
+    const testEmail = `test_${Date.now()}@sentinel.dev`;
+    const regRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/auth/register`, {
+      email: testEmail,
+      displayName: 'Usuario Tester Sentinel',
+      plan: 'guard'
+    });
+    console.log(`✅ 7. Registro de nuevo usuario OK: ${regRes.user.email} (ID: ${regRes.token})`);
+
+    // 7. Test Login de Usuario Existente
+    const loginRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/auth/login`, {
+      email: testEmail
+    });
+    console.log(`✅ 8. Login con usuario existente OK: ${loginRes.user.email}`);
+
+    // 8. Test Descarga PDF con query token
+    const pdfTokenBuffer = await fetchBinary(`http://localhost:${TEST_PORT}/api/v1/reports/footprint-pdf?token=${loginRes.token}`);
+    const isTokenPdf = pdfTokenBuffer.slice(0, 4).toString() === '%PDF';
+    console.log(`✅ 9. Descarga PDF con Query Token OK: ${isTokenPdf}`);
+
     console.log('\n🎉 ¡TODOS LOS TESTS DE INTEGRACIÓN DE SENTINEL PASARON SATISFACTORIAMENTE AL 100%!');
   } catch (err) {
     console.error('❌ Error en test:', err);

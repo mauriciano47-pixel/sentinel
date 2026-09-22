@@ -74,5 +74,34 @@ router.post('/register', (req, res) => {
   }
 });
 
+// POST /api/v1/auth/login - Iniciar sesión con correo registrado
+router.post('/login', (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'El correo electrónico es obligatorio' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = db.get('SELECT * FROM users WHERE email = ?', [normalizedEmail]);
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'No se encontró ninguna cuenta registrada con este correo electrónico. Por favor regístrate primero.'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Sesión iniciada exitosamente en Sentinel',
+      user,
+      token: user.id
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al iniciar sesión', details: err.message });
+  }
+});
+
 module.exports = router;
 
