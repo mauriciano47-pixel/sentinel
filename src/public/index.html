@@ -209,109 +209,124 @@
       </div>
     </div>
 
-    <!-- Modal: Onboarding & Registro Inicial de Usuario -->
+    <!-- Modal: Gestión de Planes en el Lobby -->
+    <div id="plan-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="plan-modal-title">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3 id="plan-modal-title">Nivel de Protección de la Bóveda</h3>
+          <button id="btn-close-plan-modal" class="btn-icon" aria-label="Cerrar modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="micro-text" style="margin-bottom: 16px;">
+            Modifica el nivel de blindaje operativo de tu identidad en el lobby de Sentinel.
+          </p>
+          <div class="platforms-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            <div class="platform-card" style="border: 1px solid rgba(148, 163, 184, 0.3);">
+              <div class="platform-top">
+                <div>
+                  <h4 class="platform-name">FREE</h4>
+                  <span class="platform-cat">Auditoría Esencial</span>
+                </div>
+                <span class="badge-tag" style="color: #94a3b8;">Básico</span>
+              </div>
+              <p class="card-desc" style="margin: 10px 0; font-size: 0.78rem;">Auditoría k-Anonymity y catálogo completo de 50+ plataformas.</p>
+              <button class="btn btn-sm btn-secondary full-width btn-select-lobby-plan" data-plan="free" style="margin-top: 12px;">Activar Free</button>
+            </div>
+
+            <div class="platform-card" style="border: 1px solid rgba(0, 229, 255, 0.4);">
+              <div class="platform-top">
+                <div>
+                  <h4 class="platform-name" style="color: var(--color-electric-blue);">GUARD</h4>
+                  <span class="platform-cat">Escudo Activo</span>
+                </div>
+                <span class="badge-tag" style="color: var(--color-electric-blue); border-color: rgba(0, 229, 255, 0.4);">Recomendado</span>
+              </div>
+              <p class="card-desc" style="margin: 10px 0; font-size: 0.78rem;">Monitoreo continuo de brechas HIBP y alerta de filtraciones.</p>
+              <button class="btn btn-sm btn-primary full-width btn-select-lobby-plan" data-plan="guard" style="margin-top: 12px;">Activar Guard</button>
+            </div>
+
+            <div class="platform-card" style="border: 1px solid rgba(245, 158, 11, 0.4);">
+              <div class="platform-top">
+                <div>
+                  <h4 class="platform-name" style="color: #f59e0b;">SENTINEL PRO</h4>
+                  <span class="platform-cat">Soberanía Total</span>
+                </div>
+                <span class="badge-tag" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);">Máximo</span>
+              </div>
+              <p class="card-desc" style="margin: 10px 0; font-size: 0.78rem;">Orquestador RGPD Art. 17, plantillas legales y reporte ejecutivo PDF.</p>
+              <button class="btn btn-sm btn-outline full-width btn-select-lobby-plan" data-plan="sentinel" style="margin-top: 12px;">Activar Sentinel Pro</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Control de Acceso Sentinel (Frío, Profesional & Soberano) -->
     <div id="onboarding-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
-      <div class="modal-card modal-onboarding">
-        <div class="onboarding-hero">
-          <div class="shield-badge-lg">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="modal-card modal-auth-cold">
+        <div class="auth-header-cold">
+          <div class="sentinel-shield-cold">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
-          <h2 id="onboarding-title">Bienvenido a SENTINEL</h2>
-          <p class="onboarding-desc">
-            Tu guardián autónomo de privacidad personal, monitoreo de brechas (HIBP / k-Anonymity) y orquestador del Derecho al Olvido (RGPD Art. 17).
-          </p>
+          <h2 id="onboarding-title" class="auth-brand-cold">SENTINEL</h2>
+          <p class="auth-sub-cold">CONTROL DE ACCESO // BÓVEDA DE SOBERANÍA</p>
         </div>
 
-        <!-- Auth Tabs -->
-        <div class="auth-tabs" role="tablist">
-          <button type="button" id="tab-btn-register" class="auth-tab-btn active" role="tab" aria-selected="true" aria-controls="form-register" aria-label="Pestaña Crear Cuenta">
-            Crear Cuenta Soberana
+        <!-- Google SSO (Acceso Rápido Federado) -->
+        <div class="social-auth-box">
+          <button type="button" id="btn-google-auth" class="btn btn-google full-width" aria-label="Continuar con Google">
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.27 21.41 7.33 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.13-1.57.38-2.29V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.13z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.27 2.59 1.25 6.58l4.03 3.13c.95-2.83 3.6-4.96 6.72-4.96z"/>
+            </svg>
+            <span>Continuar con Google</span>
           </button>
-          <button type="button" id="tab-btn-login" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="form-login" aria-label="Pestaña Iniciar Sesión">
-            Ya tengo Cuenta
-          </button>
+        </div>
+
+        <div class="cold-divider">
+          <span>// O AUTENTICACIÓN DIRECTA //</span>
         </div>
 
         <div id="auth-feedback" class="auth-feedback-box hidden" role="alert"></div>
 
-        <!-- Formulario: Registro -->
-        <form id="form-register" class="auth-pane" novalidate>
-          <div class="form-group">
-            <label for="reg-name">Nombre Completo o Alias</label>
-            <input type="text" id="reg-name" class="cyber-input full-width" placeholder="Ej. Carlos Mendoza, Elena Rostova" required autocomplete="name">
+        <!-- Formulario Autenticación Unificado (Login / Registro) -->
+        <form id="form-auth" novalidate>
+          <div class="form-group" id="group-auth-name" style="display: none;">
+            <label for="auth-name">NOMBRE O ALIAS</label>
+            <input type="text" id="auth-name" class="cyber-input full-width font-mono" placeholder="Tu identificador público" autocomplete="name">
           </div>
 
           <div class="form-group">
-            <label for="reg-email">Correo Electrónico Principal</label>
-            <input type="email" id="reg-email" class="cyber-input full-width" placeholder="tu-correo@ejemplo.com" required autocomplete="email">
-            <span class="micro-hint">Vincula tu identidad a una bóveda privada local y análisis de huella.</span>
+            <label for="auth-identifier">USUARIO O CORREO ELECTRÓNICO</label>
+            <input type="text" id="auth-identifier" class="cyber-input full-width font-mono" placeholder="identidad@segura.com o alias" required autocomplete="username">
           </div>
 
           <div class="form-group">
-            <span class="form-label-title">Nivel de Protección / Plan de Privacidad</span>
-            <div class="plan-options-grid">
-              <label class="plan-card" for="plan-free">
-                <input type="radio" name="reg-plan" id="plan-free" value="free">
-                <div class="plan-card-content">
-                  <span class="plan-name">Free</span>
-                  <span class="plan-detail">Auditoría básica & escaneo HIBP</span>
-                </div>
-              </label>
-
-              <label class="plan-card active-plan" for="plan-guard">
-                <input type="radio" name="reg-plan" id="plan-guard" value="guard" checked>
-                <div class="plan-card-content">
-                  <span class="plan-name">Guard</span>
-                  <span class="plan-detail">Monitoreo continuo & k-Anonymity</span>
-                </div>
-              </label>
-
-              <label class="plan-card" for="plan-sentinel">
-                <input type="radio" name="reg-plan" id="plan-sentinel" value="sentinel">
-                <div class="plan-card-content">
-                  <span class="plan-name">Sentinel Pro</span>
-                  <span class="plan-detail">Orquestador RGPD 17 & Reportes</span>
-                </div>
-              </label>
-            </div>
+            <label for="auth-password">CLAVE DE SEGURIDAD</label>
+            <input type="password" id="auth-password" class="cyber-input full-width font-mono" placeholder="••••••••••••" required autocomplete="current-password">
           </div>
 
-          <div class="checkbox-group">
-            <input type="checkbox" id="reg-auto-monitor" checked>
-            <label for="reg-auto-monitor" class="checkbox-label">
-              Añadir este correo automáticamente a la lista de monitoreo de identidades.
-            </label>
-          </div>
-
-          <div class="onboarding-actions">
-            <button type="submit" id="btn-submit-register" class="btn btn-primary full-width" aria-label="Crear cuenta y comenzar">
-              🛡️ Activar Bóveda & Comenzar
+          <div class="onboarding-actions" style="margin-top: 18px;">
+            <button type="submit" id="btn-auth-submit" class="btn btn-primary full-width font-mono" aria-label="Autenticar">
+              [ INICIAR SESIÓN ]
             </button>
           </div>
-        </form>
 
-        <!-- Formulario: Login -->
-        <form id="form-login" class="auth-pane hidden" novalidate>
-          <div class="form-group">
-            <label for="login-email">Correo Electrónico Registrado</label>
-            <input type="email" id="login-email" class="cyber-input full-width" placeholder="ejemplo@correo.com" required autocomplete="email">
-            <span class="micro-hint">Ingresa el correo con el que registraste tu bóveda de privacidad.</span>
-          </div>
-
-          <div class="onboarding-actions">
-            <button type="submit" id="btn-submit-login" class="btn btn-primary full-width" aria-label="Iniciar sesión en la bóveda">
-              🔐 Acceder a mi Bóveda
+          <div class="auth-mode-switcher">
+            <button type="button" id="btn-toggle-auth-mode" class="auth-toggle-link" aria-label="Alternar modo de autenticación">
+              ¿Primera vez? Crear nueva identidad
             </button>
           </div>
         </form>
 
         <!-- Acceso Arconte Soberano (Mauro) -->
         <div class="sovereign-quick-access">
-          <span class="micro-divider">O ACCESO PRIVADO DIRECTO</span>
-          <button id="btn-master-access" type="button" class="btn btn-sm btn-outline full-width" aria-label="Acceder como Arconte Soberano">
-            👑 Acceso Arconte Soberano (Mauro - Modo Maestro)
+          <button id="btn-master-access" type="button" class="btn btn-sm btn-cold-outline full-width font-mono" aria-label="Acceder como Arconte Soberano">
+            TERMINAL SOBERANA (MAURO // MASTER ARCHON)
           </button>
         </div>
       </div>

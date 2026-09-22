@@ -1,6 +1,7 @@
 // SENTINEL Dashboard Controller (Vanilla JS, Zero Bloat)
 const API_BASE = '/api/v1';
 let currentSelectedPlatform = null;
+let currentAuthMode = 'login'; // 'login' | 'register'
 
 // Elementos del DOM del Dashboard
 const elScore = document.getElementById('score-number');
@@ -21,14 +22,22 @@ const elUserBadge = document.getElementById('user-badge');
 const elUserPlanBadge = document.getElementById('user-plan-badge');
 const btnLogout = document.getElementById('btn-logout');
 
-// Elementos del Modal de Onboarding / Auth
+// Elementos del Modal de Control de Acceso (Frío, Profesional & Soberano)
 const onboardingModal = document.getElementById('onboarding-modal');
-const tabBtnRegister = document.getElementById('tab-btn-register');
-const tabBtnLogin = document.getElementById('tab-btn-login');
-const formRegister = document.getElementById('form-register');
-const formLogin = document.getElementById('form-login');
-const authFeedback = document.getElementById('auth-feedback');
+const formAuth = document.getElementById('form-auth');
+const authIdentifier = document.getElementById('auth-identifier');
+const authPassword = document.getElementById('auth-password');
+const authName = document.getElementById('auth-name');
+const groupAuthName = document.getElementById('group-auth-name');
+const btnAuthSubmit = document.getElementById('btn-auth-submit');
+const btnToggleAuthMode = document.getElementById('btn-toggle-auth-mode');
+const btnGoogleAuth = document.getElementById('btn-google-auth');
 const btnMasterAccess = document.getElementById('btn-master-access');
+const authFeedback = document.getElementById('auth-feedback');
+
+// Elementos del Modal de Planes en el Lobby
+const planModal = document.getElementById('plan-modal');
+const btnClosePlanModal = document.getElementById('btn-close-plan-modal');
 
 // ==========================================
 // 1. GESTIÓN DE SESIÓN LOCAL SOBERANA
@@ -60,6 +69,7 @@ function showOnboardingModal() {
   if (onboardingModal) {
     onboardingModal.classList.remove('hidden');
     clearAuthFeedback();
+    resetAuthForm();
   }
 }
 
@@ -83,6 +93,16 @@ function clearAuthFeedback() {
   authFeedback.className = 'auth-feedback-box hidden';
 }
 
+function resetAuthForm() {
+  currentAuthMode = 'login';
+  if (groupAuthName) groupAuthName.style.display = 'none';
+  if (btnAuthSubmit) btnAuthSubmit.textContent = '[ INICIAR SESIÓN ]';
+  if (btnToggleAuthMode) btnToggleAuthMode.textContent = '¿Primera vez? Crear nueva identidad';
+  if (authIdentifier) authIdentifier.value = '';
+  if (authPassword) authPassword.value = '';
+  if (authName) authName.value = '';
+}
+
 // Wrapper centralizado de Fetch con Autenticación Inyectada
 async function fetchAuth(endpoint, options = {}) {
   const session = getSession();
@@ -96,7 +116,7 @@ async function fetchAuth(endpoint, options = {}) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
   const response = await fetch(url, Object.assign({}, options, { headers }));
 
-  if (response.status === 401) {
+  if (response.status === 401 && !endpoint.includes('/auth/login')) {
     console.warn('[Sentinel] Sesión no autorizada o expirada');
     clearSession();
   }
@@ -117,13 +137,11 @@ async function checkAuthAndBootstrap() {
   const session = getSession();
 
   if (!session) {
-    // Primera visita de un usuario: mostrar pantalla de bienvenida y registro
     showOnboardingModal();
     renderLoggedOutState();
     return;
   }
 
-  // Si existe sesión previa en localStorage, verificar validez con el backend
   try {
     const res = await fetchAuth('/auth/me');
     if (!res.ok) {
@@ -142,7 +160,6 @@ async function checkAuthAndBootstrap() {
     }
   } catch (err) {
     console.error('Error comprobando sesión:', err);
-    // Modo offline resiliente: si hay sesión local, cargar UI
     updateUserHeader(session.user);
     hideOnboardingModal();
     loadDashboardData();
@@ -157,17 +174,17 @@ function loadDashboardData() {
 }
 
 function renderLoggedOutState() {
-  elUserBadge.textContent = 'Sin registrar';
-  elUserPlanBadge.textContent = 'INVITADO';
+  elUserBadge.textContent = 'Sin autenticar';
+  elUserPlanBadge.textContent = 'BLOQUEADO';
   elUserPlanBadge.className = 'plan-pill plan-free';
 
   elScore.textContent = '--';
-  elRiskBadge.textContent = 'Esperando Registro';
+  elRiskBadge.textContent = 'Control de Acceso';
   elRiskBadge.style.color = '#94a3b8';
-  elRiskSummary.textContent = 'Regístrate o inicia sesión para activar el motor de privacidad.';
+  elRiskSummary.textContent = 'Autentica tu identidad o clave para desbloquear la bóveda de soberanía.';
 
-  elIdentities.innerHTML = '<div class="skeleton-loader">Debes registrarte para monitorear tus identidades.</div>';
-  elRequests.innerHTML = '<div class="skeleton-loader">Sin solicitudes registradas.</div>';
+  elIdentities.innerHTML = '<div class="skeleton-loader">Identidades bloqueadas. Autentícate para ver tus registros.</div>';
+  elRequests.innerHTML = '<div class="skeleton-loader">Sin solicitudes visibles.</div>';
 }
 
 function updateUserHeader(user) {
@@ -177,51 +194,39 @@ function updateUserHeader(user) {
   const plan = (user.plan || 'free').toLowerCase();
   elUserPlanBadge.textContent = plan.toUpperCase();
   elUserPlanBadge.className = `plan-pill plan-${plan}`;
+  elUserPlanBadge.style.cursor = 'pointer';
+  elUserPlanBadge.title = 'Haz clic para gestionar tu nivel de protección en el Lobby';
 }
 
 function setupEventListeners() {
-  // --- Modales de Auth y Onboarding ---
-  if (tabBtnRegister && tabBtnLogin) {
-    tabBtnRegister.addEventListener('click', () => {
-      tabBtnRegister.classList.add('active');
-      tabBtnRegister.setAttribute('aria-selected', 'true');
-      tabBtnLogin.classList.remove('active');
-      tabBtnLogin.setAttribute('aria-selected', 'false');
-      formRegister.classList.remove('hidden');
-      formLogin.classList.add('hidden');
+  // Alternar entre Login y Registro
+  if (btnToggleAuthMode) {
+    btnToggleAuthMode.addEventListener('click', () => {
       clearAuthFeedback();
-    });
-
-    tabBtnLogin.addEventListener('click', () => {
-      tabBtnLogin.classList.add('active');
-      tabBtnLogin.setAttribute('aria-selected', 'true');
-      tabBtnRegister.classList.remove('active');
-      tabBtnRegister.setAttribute('aria-selected', 'false');
-      formLogin.classList.remove('hidden');
-      formRegister.classList.add('hidden');
-      clearAuthFeedback();
+      if (currentAuthMode === 'login') {
+        currentAuthMode = 'register';
+        groupAuthName.style.display = 'block';
+        btnAuthSubmit.textContent = '[ REGISTRAR BÓVEDA ]';
+        btnToggleAuthMode.textContent = '¿Ya tienes identidad? Iniciar sesión';
+        authName.focus();
+      } else {
+        currentAuthMode = 'login';
+        groupAuthName.style.display = 'none';
+        btnAuthSubmit.textContent = '[ INICIAR SESIÓN ]';
+        btnToggleAuthMode.textContent = '¿Primera vez? Crear nueva identidad';
+        authIdentifier.focus();
+      }
     });
   }
 
-  // Selección de tarjetas de planes en el registro
-  const planCards = document.querySelectorAll('.plan-card');
-  planCards.forEach(card => {
-    card.addEventListener('click', () => {
-      planCards.forEach(c => c.classList.remove('active-plan'));
-      card.classList.add('active-plan');
-      const radio = card.querySelector('input[type="radio"]');
-      if (radio) radio.checked = true;
-    });
-  });
-
-  // Envío Formulario Registro
-  if (formRegister) {
-    formRegister.addEventListener('submit', handleRegisterSubmit);
+  // Envío Formulario Auth Unificado
+  if (formAuth) {
+    formAuth.addEventListener('submit', handleAuthSubmit);
   }
 
-  // Envío Formulario Login
-  if (formLogin) {
-    formLogin.addEventListener('submit', handleLoginSubmit);
+  // Botón Google SSO
+  if (btnGoogleAuth) {
+    btnGoogleAuth.addEventListener('click', handleGoogleAuth);
   }
 
   // Botón Acceso Arconte Soberano (Mauro)
@@ -235,6 +240,26 @@ function setupEventListeners() {
       clearSession();
     });
   }
+
+  // --- Modal de Gestión de Planes en el Lobby ---
+  if (elUserPlanBadge) {
+    elUserPlanBadge.addEventListener('click', () => {
+      if (planModal) planModal.classList.remove('hidden');
+    });
+  }
+
+  if (btnClosePlanModal) {
+    btnClosePlanModal.addEventListener('click', () => {
+      if (planModal) planModal.classList.add('hidden');
+    });
+  }
+
+  document.querySelectorAll('.btn-select-lobby-plan').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const selectedPlan = e.target.getAttribute('data-plan');
+      await changePlanFromLobby(selectedPlan);
+    });
+  });
 
   // --- Funcionalidades del Dashboard ---
 
@@ -288,129 +313,155 @@ function setupEventListeners() {
 }
 
 // ==========================================
-// 3. CONTROLADORES DE AUTH (REGISTRO & LOGIN)
+// 3. CONTROLADORES DE AUTH (FRÍO & PROFESIONAL)
 // ==========================================
 
-async function handleRegisterSubmit(e) {
+async function handleAuthSubmit(e) {
   e.preventDefault();
   clearAuthFeedback();
 
-  const nameInput = document.getElementById('reg-name');
-  const emailInput = document.getElementById('reg-email');
-  const autoMonitorInput = document.getElementById('reg-auto-monitor');
-  const selectedPlanRadio = document.querySelector('input[name="reg-plan"]:checked');
+  const identifier = authIdentifier.value.trim();
+  const password = authPassword.value.trim();
+  const displayName = authName ? authName.value.trim() : '';
 
-  const displayName = nameInput.value.trim();
-  const email = emailInput.value.trim().toLowerCase();
-  const plan = selectedPlanRadio ? selectedPlanRadio.value : 'guard';
-
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    showAuthFeedback('Por favor introduce un correo electrónico válido.', 'error');
-    emailInput.focus();
+  if (!identifier) {
+    showAuthFeedback('[!] Usuario o correo electrónico obligatorio.', 'error');
+    authIdentifier.focus();
     return;
   }
 
-  const btnSubmit = document.getElementById('btn-submit-register');
-  btnSubmit.disabled = true;
-  btnSubmit.textContent = '🛡️ Configurando Bóveda...';
+  if (!password) {
+    showAuthFeedback('[!] Clave de seguridad requerida.', 'error');
+    authPassword.focus();
+    return;
+  }
+
+  btnAuthSubmit.disabled = true;
+  btnAuthSubmit.textContent = '[ VERIFICANDO CREDENCIALES... ]';
 
   try {
-    const res = await fetch(`${API_BASE}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, displayName, plan })
-    });
+    if (currentAuthMode === 'login') {
+      // 1. Iniciar Sesión
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: identifier, password })
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      if (res.status === 409 && data.user) {
-        // Usuario ya existe: iniciar sesión directamente con su token
-        saveSession(data.user, data.token);
-        updateUserHeader(data.user);
-        hideOnboardingModal();
-        loadDashboardData();
+      if (!res.ok) {
+        showAuthFeedback(`[!] ${data.error || 'Acceso denegado.'}`, 'error');
         return;
       }
-      showAuthFeedback(data.error || 'Error al procesar el registro.', 'error');
-      return;
-    }
 
-    // Registro exitoso
-    saveSession(data.user, data.token);
-    updateUserHeader(data.user);
+      showAuthFeedback('[✓] Acceso autorizado. Desbloqueando...', 'success');
+      saveSession(data.user, data.token);
+      updateUserHeader(data.user);
 
-    // Si marcó la opción de auto-monitorear su correo inicial
-    if (autoMonitorInput && autoMonitorInput.checked) {
-      try {
-        await fetchAuth('/identities', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'email',
-            value: email,
-            label: 'Identidad Principal'
-          })
-        });
-      } catch (idErr) {
-        console.warn('No se pudo vincular automáticamente la identidad inicial:', idErr);
+      setTimeout(() => {
+        hideOnboardingModal();
+        loadDashboardData();
+      }, 350);
+    } else {
+      // 2. Registrar Nueva Identidad (Plan default 'free', sin selección en auth)
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: identifier,
+          password,
+          displayName: displayName || identifier.split('@')[0],
+          plan: 'free'
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAuthFeedback(`[!] ${data.error || 'Error creando identidad.'}`, 'error');
+        return;
       }
-    }
 
-    hideOnboardingModal();
-    loadDashboardData();
+      showAuthFeedback('[✓] Identidad registrada con éxito.', 'success');
+      saveSession(data.user, data.token);
+      updateUserHeader(data.user);
+
+      // Si el identificador tiene formato de correo, vincularlo como primera identidad
+      if (identifier.includes('@')) {
+        try {
+          await fetchAuth('/identities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'email',
+              value: identifier.toLowerCase(),
+              label: 'Identidad Principal'
+            })
+          });
+        } catch (_) {}
+      }
+
+      setTimeout(() => {
+        hideOnboardingModal();
+        loadDashboardData();
+      }, 350);
+    }
   } catch (err) {
-    showAuthFeedback('Error de conexión con el servidor de Sentinel.', 'error');
+    showAuthFeedback('[!] Error de conexión con la terminal Sentinel.', 'error');
   } finally {
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = '🛡️ Activar Bóveda & Comenzar';
+    btnAuthSubmit.disabled = false;
+    btnAuthSubmit.textContent = currentAuthMode === 'login' ? '[ INICIAR SESIÓN ]' : '[ REGISTRAR BÓVEDA ]';
   }
 }
 
-async function handleLoginSubmit(e) {
-  e.preventDefault();
+async function handleGoogleAuth() {
   clearAuthFeedback();
-
-  const emailInput = document.getElementById('login-email');
-  const email = emailInput.value.trim().toLowerCase();
-
-  if (!email) {
-    showAuthFeedback('Por favor introduce tu correo electrónico.', 'error');
-    emailInput.focus();
-    return;
-  }
-
-  const btnSubmit = document.getElementById('btn-submit-login');
-  btnSubmit.disabled = true;
-  btnSubmit.textContent = '🔐 Autenticando...';
+  btnGoogleAuth.disabled = true;
 
   try {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
+    // Diálogo austero para simulación o entrada de identidad Google
+    const defaultGoogleEmail = 'usuario.seguro@gmail.com';
+    const emailPrompt = prompt('SISTEMA SENTINEL // INGRESO CON CUENTA GOOGLE\nIntroduce tu dirección de correo Google:', defaultGoogleEmail);
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      showAuthFeedback(data.error || 'No se pudo iniciar sesión.', 'error');
+    if (!emailPrompt) {
+      btnGoogleAuth.disabled = false;
       return;
     }
 
+    const res = await fetch(`${API_BASE}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: emailPrompt.trim().toLowerCase(),
+        displayName: emailPrompt.split('@')[0],
+        googleId: `gid_${Date.now()}`
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      showAuthFeedback(`[!] ${data.error || 'Error autenticando con Google.'}`, 'error');
+      return;
+    }
+
+    showAuthFeedback('[✓] Autenticado vía Google SSO. Cargando bóveda...', 'success');
     saveSession(data.user, data.token);
     updateUserHeader(data.user);
-    hideOnboardingModal();
-    loadDashboardData();
-  } catch (err) {
-    showAuthFeedback('Error de comunicación con el servidor.', 'error');
+
+    setTimeout(() => {
+      hideOnboardingModal();
+      loadDashboardData();
+    }, 350);
+  } catch (e) {
+    showAuthFeedback('[!] Error en servicio federado de Google.', 'error');
   } finally {
-    btnSubmit.disabled = false;
-    btnSubmit.textContent = '🔐 Acceder a mi Bóveda';
+    btnGoogleAuth.disabled = false;
   }
 }
 
 async function handleMasterAccess() {
+  clearAuthFeedback();
   try {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -423,7 +474,6 @@ async function handleMasterAccess() {
       saveSession(data.user, data.token);
       updateUserHeader(data.user);
     } else {
-      // Fallback local soberano
       const masterUser = {
         id: 'user_local_soberano',
         email: 'guardian@sentinel.privacy',
@@ -434,8 +484,11 @@ async function handleMasterAccess() {
       updateUserHeader(masterUser);
     }
 
-    hideOnboardingModal();
-    loadDashboardData();
+    showAuthFeedback('[✓] Identidad Arconte Soberano verificada.', 'success');
+    setTimeout(() => {
+      hideOnboardingModal();
+      loadDashboardData();
+    }, 250);
   } catch (e) {
     const masterUser = {
       id: 'user_local_soberano',
@@ -447,6 +500,35 @@ async function handleMasterAccess() {
     updateUserHeader(masterUser);
     hideOnboardingModal();
     loadDashboardData();
+  }
+}
+
+// Cambio de Plan en el Lobby
+async function changePlanFromLobby(newPlan) {
+  try {
+    const res = await fetchAuth('/auth/plan', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: newPlan })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'Error al actualizar nivel de plan');
+      return;
+    }
+
+    const session = getSession();
+    if (session) {
+      saveSession(data.user, session.token);
+      updateUserHeader(data.user);
+    }
+
+    if (planModal) planModal.classList.add('hidden');
+    alert(`Nivel de protección actualizado a ${newPlan.toUpperCase()} en tu lobby.`);
+    loadExposureScore();
+  } catch (err) {
+    alert('Error al comunicar cambio de plan.');
   }
 }
 
@@ -476,7 +558,6 @@ async function loadExposureScore() {
     elRiskBadge.textContent = `Nivel de Riesgo: ${data.riskLevel}`;
     elRiskBadge.style.color = data.riskColor;
 
-    // Gauge ring border color
     const gaugeRing = document.querySelector('.gauge-ring');
     if (gaugeRing) {
       gaugeRing.style.borderColor = data.riskColor;

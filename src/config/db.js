@@ -91,6 +91,13 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_requests_user ON deletion_requests(user_id);
   `);
 
+  // Migración segura para autenticación con clave local
+  try {
+    db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT;');
+  } catch (_) {
+    // Columna ya existente
+  }
+
   // Sembrado o actualización del catálogo maestro a 50+ plataformas
   seedPlatforms();
 
