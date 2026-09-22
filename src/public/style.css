@@ -71,6 +71,16 @@ body {
   justify-content: center;
   color: var(--color-electric-blue);
   box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+  overflow: hidden;
+  padding: 0;
+}
+
+.sentinel-nav-robot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
 }
 
 .brand h1 {
@@ -607,8 +617,8 @@ body {
 }
 
 .sentinel-shield-cold {
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   border-radius: 12px;
   background: rgba(0, 229, 255, 0.08);
   border: 1px solid var(--color-electric-blue);
@@ -618,6 +628,16 @@ body {
   margin: 0 auto 12px auto;
   color: var(--color-electric-blue);
   box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+  overflow: hidden;
+  padding: 0;
+}
+
+.sentinel-modal-robot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
 }
 
 .auth-brand-cold {
