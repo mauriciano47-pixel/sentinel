@@ -83,7 +83,7 @@ const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3001;
 async function startServer() {
   const port = await findAvailablePort(DEFAULT_PORT);
 
-  app.listen(port, () => {
+  app.listen(port, '0.0.0.0', () => {
     console.log('\n======================================================');
     console.log('🛡️  SENTINEL — Guardián de Datos & Orquestador GDPR  🛡️');
     console.log('======================================================');
