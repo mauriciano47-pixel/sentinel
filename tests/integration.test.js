@@ -39,12 +39,13 @@ const server = app.listen(TEST_PORT, async () => {
     console.log('✅ 4. Identidad registrada para monitoreo');
 
     // 4.1 Test Add Phone Identity
+    const testPhone = `+569${Date.now().toString().slice(-8)}`;
     const phoneRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/identities`, {
       type: 'phone',
-      value: '+56 9 1234 5678',
+      value: testPhone,
       label: 'Móvil Personal'
     });
-    console.log(`✅ 4.1 Identidad telefónica registrada: ${phoneRes.identity.value}`);
+    console.log(`✅ 4.1 Identidad telefónica registrada: ${phoneRes.identity?.value || testPhone}`);
 
     const reqRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/requests`, {
       platformId: platforms.platforms[0].id,

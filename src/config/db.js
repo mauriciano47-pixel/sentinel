@@ -1,8 +1,25 @@
+const fs = require('node:fs');
 const { DatabaseSync } = require('node:sqlite');
 const path = require('node:path');
 
-const DB_FILE = process.env.DB_FILE || 'sentinel.sqlite3';
-const dbPath = path.resolve(process.cwd(), DB_FILE);
+function getDatabasePath() {
+  const envPath = process.env.DB_FILE;
+  if (envPath) {
+    return path.isAbsolute(envPath) ? envPath : path.resolve(process.cwd(), envPath);
+  }
+  // En producción en Railway (Linux) con volumen persistente montado en /data
+  if (process.platform === 'linux' && fs.existsSync('/data')) {
+    return '/data/sentinel.sqlite3';
+  }
+  return path.resolve(process.cwd(), 'sentinel.sqlite3');
+}
+
+const dbPath = getDatabasePath();
+
+// Asegurar que el directorio contenedor exista
+try {
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+} catch (_) {}
 
 // Instancia de base de datos SQLite integrada (Zero dependencies, Zero C++ errors)
 const db = new DatabaseSync(dbPath);
