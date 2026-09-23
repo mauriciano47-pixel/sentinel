@@ -274,7 +274,38 @@ function setupEventListeners() {
 
   // Modal Identidad
   const idModal = document.getElementById('identity-modal');
+  const idTypeSelect = document.getElementById('new-id-type');
+  const idValueInput = document.getElementById('new-id-value');
+  const idValueLabel = document.getElementById('label-new-id-value');
+  const idHelpText = document.getElementById('help-new-id-value');
+
+  function updateIdentityModalInputs() {
+    if (!idTypeSelect || !idValueInput) return;
+    const selectedType = idTypeSelect.value;
+    if (selectedType === 'phone') {
+      if (idValueLabel) idValueLabel.textContent = 'Número Telefónico (con código de país)';
+      idValueInput.type = 'tel';
+      idValueInput.placeholder = '+56 9 1234 5678 o +34 612 345 678';
+      if (idHelpText) idHelpText.textContent = '// RASTREO DE FILTRACIONES TELEFÓNICAS (WHATSAPP, FACEBOOK LEAKS) //';
+    } else if (selectedType === 'username') {
+      if (idValueLabel) idValueLabel.textContent = 'Nombre de Usuario o Alias';
+      idValueInput.type = 'text';
+      idValueInput.placeholder = '@usuario o tu_alias';
+      if (idHelpText) idHelpText.textContent = '// RASTREO EN FOROS, BASES DE GAMING Y COMUNIDADES //';
+    } else {
+      if (idValueLabel) idValueLabel.textContent = 'Correo Electrónico a Monitorear';
+      idValueInput.type = 'email';
+      idValueInput.placeholder = 'ejemplo@correo.com';
+      if (idHelpText) idHelpText.textContent = '// RASTREO EN BRECHAS MASIVAS HIBP Y COMBOS GLOBALES //';
+    }
+  }
+
+  if (idTypeSelect) {
+    idTypeSelect.addEventListener('change', updateIdentityModalInputs);
+  }
+
   document.getElementById('btn-open-identity-modal').addEventListener('click', () => {
+    updateIdentityModalInputs();
     idModal.classList.remove('hidden');
     document.getElementById('new-id-value').focus();
   });
@@ -623,7 +654,8 @@ async function saveNewIdentity() {
   const label = document.getElementById('new-id-label').value.trim();
 
   if (!value) {
-    alert('Por favor ingrese un correo o teléfono.');
+    const typeNames = { email: 'un correo electrónico', phone: 'un número telefónico', username: 'un nombre de usuario' };
+    alert(`Por favor ingrese ${typeNames[type] || 'un valor válido'}.`);
     return;
   }
 

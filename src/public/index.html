@@ -171,8 +171,11 @@
             <option value="username">Nombre de Usuario</option>
           </select>
 
-          <label for="new-id-value">Valor / Dirección</label>
-          <input type="text" id="new-id-value" class="cyber-input full-width" placeholder="ejemplo@correo.com">
+          <label for="new-id-value" id="label-new-id-value">Correo Electrónico a Monitorear</label>
+          <input type="email" id="new-id-value" class="cyber-input full-width font-mono" placeholder="ejemplo@correo.com" autocomplete="off">
+          <p id="help-new-id-value" style="font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; margin-bottom: 12px; font-family: var(--font-mono);">
+            // RASTREO EN BRECHAS MASIVAS HIBP Y COMBOS GLOBALES //
+          </p>
 
           <label for="new-id-label">Etiqueta (Opcional)</label>
           <input type="text" id="new-id-label" class="cyber-input full-width"

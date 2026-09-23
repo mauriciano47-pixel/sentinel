@@ -33,12 +33,24 @@ router.post('/', authenticate, (req, res) => {
       return res.status(400).json({ error: 'El valor de la identidad no puede estar vacío' });
     }
 
-    const cleanValue = value.trim().toLowerCase();
+    let cleanValue = value.trim();
 
     if (type === 'email') {
+      cleanValue = cleanValue.toLowerCase();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(cleanValue)) {
         return res.status(400).json({ error: 'Formato de correo electrónico inválido' });
+      }
+    } else if (type === 'phone') {
+      const phoneDigits = cleanValue.replace(/\D/g, '');
+      if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+        return res.status(400).json({ error: 'Número telefónico inválido (debe contener entre 7 y 15 dígitos)' });
+      }
+      cleanValue = cleanValue.startsWith('+') ? `+${phoneDigits}` : phoneDigits;
+    } else if (type === 'username') {
+      cleanValue = cleanValue.toLowerCase().replace(/^@/, '');
+      if (cleanValue.length < 2) {
+        return res.status(400).json({ error: 'El nombre de usuario debe tener al menos 2 caracteres' });
       }
     }
 
