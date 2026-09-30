@@ -51,6 +51,16 @@ const server = app.listen(TEST_PORT, async () => {
     const scanRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/scan`, {});
     console.log(`✅ 4.2 Escaneo de Exposición completado: ${scanRes.results.length} identidades analizadas (Email + Teléfono). Score: ${scanRes.exposureScore}/100`);
 
+    // 4.3 Test Breach Feed & Remediation Toggle
+    const breachesRes = await fetchJson(`http://localhost:${TEST_PORT}/api/v1/scan/breaches`);
+    if (breachesRes.breaches && breachesRes.breaches.length > 0) {
+      const targetBreach = breachesRes.breaches[0];
+      const toggleRes = await patchJson(`http://localhost:${TEST_PORT}/api/v1/scan/breaches/${targetBreach.id}/mitigate`, {});
+      console.log(`✅ 4.3 Remediación de Brecha comprobada: ${targetBreach.breach_title} marcada como mitigada=${toggleRes.is_mitigated} (Nuevo Score: ${toggleRes.exposureScore})`);
+    } else {
+      console.log(`✅ 4.3 Feed de filtraciones consultado (0 brechas encontradas)`);
+    }
+
     const reqRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/requests`, {
       platformId: platforms.platforms[0].id,
       notes: 'Solicitud de prueba con cómputo de 30 días'
@@ -142,6 +152,36 @@ function postJson(url, payload) {
           resolve(JSON.parse(body));
         } catch (e) {
           reject(new Error(`Error parseando POST JSON: ${body}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
+}
+
+function patchJson(url, payload = {}) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(payload);
+    const u = new URL(url);
+    const req = http.request({
+      hostname: u.hostname,
+      port: u.port,
+      path: u.pathname,
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data)
+      }
+    }, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(body));
+        } catch (e) {
+          reject(new Error(`Error parseando PATCH JSON: ${body}`));
         }
       });
     });

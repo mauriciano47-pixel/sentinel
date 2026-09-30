@@ -76,11 +76,11 @@ router.post('/', authenticate, scanLimiter, async (req, res) => {
       });
     }
 
-    // Calcular nuevo índice de exposición
-    const breachCount = db.get(`
+    // Calcular nuevo índice de exposición (considerando solo brechas no mitigadas)
+    const unmitigatedCount = db.get(`
       SELECT COUNT(*) as c FROM breaches b
       JOIN identities i ON b.identity_id = i.id
-      WHERE i.user_id = ? AND i.active = 1
+      WHERE i.user_id = ? AND i.active = 1 AND (b.is_mitigated = 0 OR b.is_mitigated IS NULL)
     `, [req.user.id]).c;
 
     const platformsCount = db.get('SELECT COUNT(*) as c FROM platforms WHERE active = 1').c;
@@ -88,7 +88,7 @@ router.post('/', authenticate, scanLimiter, async (req, res) => {
     const verifiedIdentities = db.get('SELECT COUNT(*) as c FROM identities WHERE user_id = ? AND active = 1 AND verified = 1', [req.user.id]).c;
 
     const exposureScore = calculateExposureScore({
-      breachCount,
+      breachCount: unmitigatedCount,
       platformsCount: Math.min(platformsCount, 15),
       completedDeletions,
       verifiedIdentities
@@ -111,10 +111,22 @@ router.post('/', authenticate, scanLimiter, async (req, res) => {
 // GET /api/v1/scan/exposure - Obtener índice de exposición actual y métricas de seguridad
 router.get('/exposure', authenticate, (req, res) => {
   try {
-    const breachCount = db.get(`
+    const unmitigatedCount = db.get(`
+      SELECT COUNT(*) as c FROM breaches b
+      JOIN identities i ON b.identity_id = i.id
+      WHERE i.user_id = ? AND i.active = 1 AND (b.is_mitigated = 0 OR b.is_mitigated IS NULL)
+    `, [req.user.id]).c;
+
+    const totalBreachesCount = db.get(`
       SELECT COUNT(*) as c FROM breaches b
       JOIN identities i ON b.identity_id = i.id
       WHERE i.user_id = ? AND i.active = 1
+    `, [req.user.id]).c;
+
+    const mitigatedCount = db.get(`
+      SELECT COUNT(*) as c FROM breaches b
+      JOIN identities i ON b.identity_id = i.id
+      WHERE i.user_id = ? AND i.active = 1 AND b.is_mitigated = 1
     `, [req.user.id]).c;
 
     const identitiesCount = db.get('SELECT COUNT(*) as c FROM identities WHERE user_id = ? AND active = 1', [req.user.id]).c;
@@ -123,7 +135,7 @@ router.get('/exposure', authenticate, (req, res) => {
     const completedDeletions = db.get("SELECT COUNT(*) as c FROM deletion_requests WHERE user_id = ? AND status = 'completed'", [req.user.id]).c;
 
     const score = calculateExposureScore({
-      breachCount,
+      breachCount: unmitigatedCount,
       platformsCount: 8,
       completedDeletions,
       verifiedIdentities
@@ -139,19 +151,28 @@ router.get('/exposure', authenticate, (req, res) => {
       riskColor = '#F59E0B'; // Amber
     }
 
+    let breachAdvice = 'No hay filtraciones críticas detectadas en este momento.';
+    if (unmitigatedCount > 0) {
+      breachAdvice = `Tienes ${unmitigatedCount} brecha(s) activa(s): cambia de inmediato tus contraseñas en los servicios comprometidos.`;
+    } else if (mitigatedCount > 0 && unmitigatedCount === 0) {
+      breachAdvice = '¡Excelente! Todas las filtraciones detectadas han sido marcadas como mitigadas con claves cambiadas.';
+    }
+
     res.json({
       score,
       riskLevel,
       riskColor,
       metrics: {
-        totalBreaches: breachCount,
+        totalBreaches: totalBreachesCount,
+        activeBreaches: unmitigatedCount,
+        mitigatedBreaches: mitigatedCount,
         monitoredIdentities: identitiesCount,
         verifiedIdentities,
         pendingDeletions,
         completedDeletions
       },
       recommendations: [
-        breachCount > 0 ? 'Cambia las contraseñas en los servicios comprometidos detectados.' : 'No hay filtraciones críticas detectadas en este momento.',
+        breachAdvice,
         'Habilita la autenticación en dos factores (2FA / FIDO2) en tus correos principales.',
         'Envía solicitudes de derecho al olvido (Art. 17 RGPD) a las plataformas que ya no utilices.'
       ]
@@ -192,17 +213,66 @@ router.get('/breaches', authenticate, (req, res) => {
       FROM breaches b
       JOIN identities i ON b.identity_id = i.id
       WHERE i.user_id = ? AND i.active = 1
-      ORDER BY b.detected_at DESC
+      ORDER BY COALESCE(b.is_mitigated, 0) ASC, b.detected_at DESC
     `, [req.user.id]);
 
     const formatted = breaches.map(b => ({
       ...b,
+      is_mitigated: b.is_mitigated ? 1 : 0,
       compromisedData: b.compromised_data ? JSON.parse(b.compromised_data) : []
     }));
 
     res.json({ breaches: formatted });
   } catch (err) {
     res.status(500).json({ error: 'Error consultando filtraciones', details: err.message });
+  }
+});
+
+// PATCH /api/v1/scan/breaches/:id/mitigate - Marcar o desmarcar una brecha como mitigada
+router.patch('/breaches/:id/mitigate', authenticate, (req, res) => {
+  try {
+    const { id } = req.params;
+    const breach = db.get(`
+      SELECT b.* FROM breaches b
+      JOIN identities i ON b.identity_id = i.id
+      WHERE b.id = ? AND i.user_id = ?
+    `, [id, req.user.id]);
+
+    if (!breach) {
+      return res.status(404).json({ error: 'Filtración no encontrada o no autorizada.' });
+    }
+
+    const newMitigated = breach.is_mitigated ? 0 : 1;
+    const mitigatedAt = newMitigated ? new Date().toISOString() : null;
+
+    db.run('UPDATE breaches SET is_mitigated = ?, mitigated_at = ? WHERE id = ?', [newMitigated, mitigatedAt, id]);
+
+    // Recalcular índice de exposición en tiempo real
+    const unmitigatedCount = db.get(`
+      SELECT COUNT(*) as c FROM breaches b
+      JOIN identities i ON b.identity_id = i.id
+      WHERE i.user_id = ? AND i.active = 1 AND (b.is_mitigated = 0 OR b.is_mitigated IS NULL)
+    `, [req.user.id]).c;
+
+    const completedDeletions = db.get("SELECT COUNT(*) as c FROM deletion_requests WHERE user_id = ? AND status = 'completed'", [req.user.id]).c;
+    const verifiedIdentities = db.get('SELECT COUNT(*) as c FROM identities WHERE user_id = ? AND active = 1 AND verified = 1', [req.user.id]).c;
+
+    const exposureScore = calculateExposureScore({
+      breachCount: unmitigatedCount,
+      platformsCount: 8,
+      completedDeletions,
+      verifiedIdentities
+    });
+
+    res.json({
+      success: true,
+      breachId: id,
+      is_mitigated: newMitigated,
+      mitigated_at: mitigatedAt,
+      exposureScore
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error actualizando remediación de brecha', details: err.message });
   }
 });
 

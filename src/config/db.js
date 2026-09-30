@@ -115,6 +115,18 @@ function initDatabase() {
     // Columna ya existente
   }
 
+  // Migración segura para mitigación de brechas (Threat Remediation)
+  try {
+    db.exec('ALTER TABLE breaches ADD COLUMN is_mitigated INTEGER DEFAULT 0;');
+  } catch (_) {
+    // Columna ya existente
+  }
+  try {
+    db.exec('ALTER TABLE breaches ADD COLUMN mitigated_at DATETIME;');
+  } catch (_) {
+    // Columna ya existente
+  }
+
   // Sembrado o actualización del catálogo maestro a 50+ plataformas
   seedPlatforms();
 
