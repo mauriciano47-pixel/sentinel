@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const { scanLimiter } = require('../middleware/rateLimit');
-const { checkEmail, checkPassword, calculateExposureScore } = require('../services/hibpService');
+const { checkEmail, checkPhone, checkUsername, checkPassword, calculateExposureScore } = require('../services/hibpService');
 const db = require('../config/db');
 
-// POST /api/v1/scan - Escanear identidades del usuario
+// POST /api/v1/scan - Escanear identidades del usuario (emails, teléfonos y alias)
 router.post('/', authenticate, scanLimiter, async (req, res) => {
   try {
     const { identityId } = req.body;
@@ -18,22 +18,29 @@ router.post('/', authenticate, scanLimiter, async (req, res) => {
       }
       targetIdentities = [target];
     } else {
-      targetIdentities = db.all("SELECT * FROM identities WHERE user_id = ? AND type = 'email' AND active = 1", [req.user.id]);
+      targetIdentities = db.all("SELECT * FROM identities WHERE user_id = ? AND active = 1", [req.user.id]);
     }
 
     if (targetIdentities.length === 0) {
-      return res.status(400).json({ error: 'No hay identidades de tipo email activas para escanear.' });
+      return res.status(400).json({ error: 'No hay identidades activas (correos, teléfonos o alias) para auditar.' });
     }
 
     const scanResults = [];
     let totalNewBreaches = 0;
 
     for (const identity of targetIdentities) {
-      const hibpResult = await checkEmail(identity.value);
+      let intelResult;
+      if (identity.type === 'phone') {
+        intelResult = await checkPhone(identity.value);
+      } else if (identity.type === 'username') {
+        intelResult = await checkUsername(identity.value);
+      } else {
+        intelResult = await checkEmail(identity.value);
+      }
 
       let newBreachesCount = 0;
-      if (hibpResult.breached && Array.isArray(hibpResult.breaches)) {
-        for (const breach of hibpResult.breaches) {
+      if (intelResult.breached && Array.isArray(intelResult.breaches)) {
+        for (const breach of intelResult.breaches) {
           const exists = db.get('SELECT id FROM breaches WHERE identity_id = ? AND breach_name = ?', [identity.id, breach.name]);
           if (!exists) {
             const breachId = 'br_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
@@ -61,11 +68,11 @@ router.post('/', authenticate, scanLimiter, async (req, res) => {
       scanResults.push({
         identity: identity.value,
         type: identity.type,
-        breached: hibpResult.breached,
-        mode: hibpResult.mode,
-        totalBreachesDetected: hibpResult.breaches?.length || 0,
+        breached: intelResult.breached,
+        mode: intelResult.mode,
+        totalBreachesDetected: intelResult.breaches?.length || 0,
         newBreachesSaved: newBreachesCount,
-        breaches: hibpResult.breaches || []
+        breaches: intelResult.breaches || []
       });
     }
 

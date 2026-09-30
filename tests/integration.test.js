@@ -47,6 +47,10 @@ const server = app.listen(TEST_PORT, async () => {
     });
     console.log(`✅ 4.1 Identidad telefónica registrada: ${phoneRes.identity?.value || testPhone}`);
 
+    // 4.2 Test Global Scan (Emails y Teléfonos)
+    const scanRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/scan`, {});
+    console.log(`✅ 4.2 Escaneo de Exposición completado: ${scanRes.results.length} identidades analizadas (Email + Teléfono). Score: ${scanRes.exposureScore}/100`);
+
     const reqRes = await postJson(`http://localhost:${TEST_PORT}/api/v1/requests`, {
       platformId: platforms.platforms[0].id,
       notes: 'Solicitud de prueba con cómputo de 30 días'
