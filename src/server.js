@@ -26,8 +26,14 @@ app.use(cors({
 app.use(express.json());
 app.use(generalLimiter);
 
-// 2. Servir Interfaz Web Cyber-Obsidian Royal
-app.use(express.static(path.join(__dirname, 'public')));
+// 2. Servir Interfaz Web Cyber-Obsidian Royal (con no-cache para actualizaciones instantáneas)
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }
+}));
 
 // 3. Rutas de la API REST v1
 app.use('/api/v1/auth', authRoutes);
