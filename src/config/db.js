@@ -129,9 +129,18 @@ function initDatabase() {
 }
 
 function seedPlatforms() {
-  const insertStmt = db.prepare(`
-    INSERT OR IGNORE INTO platforms (name, category, website, deletion_url, deletion_method, deletion_email, gdpr_template, difficulty, instructions)
+  const upsertStmt = db.prepare(`
+    INSERT INTO platforms (name, category, website, deletion_url, deletion_method, deletion_email, gdpr_template, difficulty, instructions)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(name) DO UPDATE SET
+      category = excluded.category,
+      website = excluded.website,
+      deletion_url = excluded.deletion_url,
+      deletion_method = excluded.deletion_method,
+      deletion_email = excluded.deletion_email,
+      gdpr_template = excluded.gdpr_template,
+      difficulty = excluded.difficulty,
+      instructions = excluded.instructions
   `);
 
   const platformsData = [
@@ -374,9 +383,9 @@ function seedPlatforms() {
     ],
     [
       'Cabify', 'fintech_comercio', 'https://cabify.com',
-      'https://help.cabify.com', 'form', 'datos.personales@cabify.com',
-      'Solicito la baja de mi cuenta de usuario y eliminación de registros de movilidad en Cabify.',
-      2, '1. En la app: Perfil > Mi cuenta > Eliminar cuenta.\n2. Confirma tu solicitud.'
+      'https://help.cabify.com/hc/es', 'form', null,
+      'Solicito la eliminación definitiva de mi cuenta de Cabify y la supresión permanente de todos mis datos personales, historial de viajes, ubicaciones y métodos de pago conforme al Artículo 17 del RGPD.',
+      2, '1. En la app Cabify: Menú > Ayuda > "Contactar con Cabify".\n2. Selecciona "Mi cuenta, métodos de pago y facturas" > "Quiero darme de baja".\n3. Pega la plantilla formal indicando tu nombre y correo registrado.\n(Nota: Cabify no admite solicitudes por email externo; se tramita vía app o web oficial).'
     ],
 
     // === 6. MENSAJERÍA & COMUNIDAD ===
@@ -457,7 +466,7 @@ function seedPlatforms() {
   ];
 
   for (const p of platformsData) {
-    insertStmt.run(...p);
+    upsertStmt.run(...p);
   }
 }
 
