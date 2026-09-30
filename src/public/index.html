@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SENTINEL — Guardián de Privacidad & Derecho al Olvido</title>
-  <link rel="stylesheet" href="style.css?v=1.3.6">
+  <link rel="stylesheet" href="style.css?v=1.3.7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -91,12 +91,16 @@
         </div>
 
         <!-- Password Auditor (k-Anonymity) -->
-        <div class="pwd-audit-box">
-          <h3>Auditor de Claves (k-Anonymity)</h3>
+        <div class="pwd-audit-box" id="pwd-audit-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <h3>Auditor de Claves (k-Anonymity)</h3>
+            <span class="pill-secure" style="font-size: 0.65rem;">Cloudflare SHA-1</span>
+          </div>
           <p class="micro-text">Comprueba si una contraseña fue vulnerada. La clave nunca sale de tu equipo.</p>
-          <div class="input-group">
+          <div class="input-group" style="position: relative;">
             <input type="password" id="input-pwd" placeholder="Ingresa contraseña a auditar..."
-              aria-label="Contraseña a auditar">
+              autocomplete="off" class="cyber-input" style="flex: 1; padding-right: 42px;" aria-label="Contraseña a auditar">
+            <button type="button" id="btn-toggle-pwd-vis" class="btn-eye-toggle" title="Mostrar u ocultar contraseña" aria-label="Mostrar u ocultar contraseña">👁️</button>
             <button id="btn-check-pwd" class="btn btn-secondary">Auditar</button>
           </div>
           <div id="pwd-result" class="pwd-feedback"></div>
@@ -219,7 +223,10 @@
         <div class="modal-body">
           <p id="gdpr-instructions" class="instructions-text"></p>
           <div class="gdpr-template-box">
-            <label for="gdpr-template-text">Plantilla Formal Generada (Lista para copiar o enviar):</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="gdpr-template-text" style="margin: 0;">Plantilla Formal Generada (Lista para copiar o enviar):</label>
+              <button id="btn-copy-gdpr" type="button" class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.72rem;">📋 Copiar Plantilla</button>
+            </div>
             <textarea id="gdpr-template-text" class="cyber-textarea" readonly rows="8"></textarea>
           </div>
           <div class="action-links" id="gdpr-action-links"></div>
@@ -357,7 +364,7 @@
     </footer>
   </div>
 
-  <script src="app.js?v=1.3.6"></script>
+  <script src="app.js?v=1.3.7"></script>
 </body>
 
 </html>

@@ -116,7 +116,7 @@ async function fetchAuth(endpoint, options = {}) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
   const response = await fetch(url, Object.assign({}, options, { headers }));
 
-  if (response.status === 401 && !endpoint.includes('/auth/login')) {
+  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/scan/password')) {
     console.warn('[Sentinel] Sesión no autorizada o expirada');
     clearSession();
   }
@@ -269,13 +269,42 @@ function setupEventListeners() {
   // --- Funcionalidades del Dashboard ---
 
   // Escaneo Global HIBP
-  document.getElementById('btn-run-scan').addEventListener('click', runGlobalScan);
+  const btnRunScan = document.getElementById('btn-run-scan');
+  if (btnRunScan) {
+    btnRunScan.addEventListener('click', runGlobalScan);
+  }
 
   // Auditor de contraseñas k-Anonymity
-  document.getElementById('btn-check-pwd').addEventListener('click', auditPassword);
-  document.getElementById('input-pwd').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') auditPassword();
-  });
+  const btnCheckPwd = document.getElementById('btn-check-pwd');
+  const inputPwd = document.getElementById('input-pwd');
+  const btnTogglePwd = document.getElementById('btn-toggle-pwd-vis');
+
+  if (btnCheckPwd) {
+    btnCheckPwd.addEventListener('click', auditPassword);
+  }
+
+  if (inputPwd) {
+    inputPwd.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        auditPassword();
+      }
+    });
+  }
+
+  if (btnTogglePwd && inputPwd) {
+    btnTogglePwd.addEventListener('click', () => {
+      if (inputPwd.type === 'password') {
+        inputPwd.type = 'text';
+        btnTogglePwd.textContent = '🔒';
+        btnTogglePwd.title = 'Ocultar contraseña';
+      } else {
+        inputPwd.type = 'password';
+        btnTogglePwd.textContent = '👁️';
+        btnTogglePwd.title = 'Mostrar contraseña';
+      }
+    });
+  }
 
   // Modal Identidad
   const idModal = document.getElementById('identity-modal');
@@ -309,20 +338,60 @@ function setupEventListeners() {
     idTypeSelect.addEventListener('change', updateIdentityModalInputs);
   }
 
-  document.getElementById('btn-open-identity-modal').addEventListener('click', () => {
-    updateIdentityModalInputs();
-    idModal.classList.remove('hidden');
-    document.getElementById('new-id-value').focus();
-  });
-  document.getElementById('btn-close-modal').addEventListener('click', () => idModal.classList.add('hidden'));
-  document.getElementById('btn-cancel-id').addEventListener('click', () => idModal.classList.add('hidden'));
-  document.getElementById('btn-save-id').addEventListener('click', saveNewIdentity);
+  const btnOpenIdModal = document.getElementById('btn-open-identity-modal');
+  if (btnOpenIdModal) {
+    btnOpenIdModal.addEventListener('click', () => {
+      updateIdentityModalInputs();
+      if (idModal) {
+        idModal.classList.remove('hidden');
+        document.getElementById('new-id-value').focus();
+      }
+    });
+  }
+
+  const btnCloseModal = document.getElementById('btn-close-modal');
+  if (btnCloseModal) btnCloseModal.addEventListener('click', () => idModal && idModal.classList.add('hidden'));
+
+  const btnCancelId = document.getElementById('btn-cancel-id');
+  if (btnCancelId) btnCancelId.addEventListener('click', () => idModal && idModal.classList.add('hidden'));
+
+  const btnSaveId = document.getElementById('btn-save-id');
+  if (btnSaveId) btnSaveId.addEventListener('click', saveNewIdentity);
 
   // Modal GDPR
   const gdprModal = document.getElementById('gdpr-modal');
-  document.getElementById('btn-close-gdpr-modal').addEventListener('click', () => gdprModal.classList.add('hidden'));
-  document.getElementById('btn-close-gdpr').addEventListener('click', () => gdprModal.classList.add('hidden'));
-  document.getElementById('btn-mark-sent').addEventListener('click', markGdprRequestSent);
+  const btnCloseGdprModal = document.getElementById('btn-close-gdpr-modal');
+  if (btnCloseGdprModal) btnCloseGdprModal.addEventListener('click', () => gdprModal && gdprModal.classList.add('hidden'));
+
+  const btnCloseGdpr = document.getElementById('btn-close-gdpr');
+  if (btnCloseGdpr) btnCloseGdpr.addEventListener('click', () => gdprModal && gdprModal.classList.add('hidden'));
+
+  const btnMarkSent = document.getElementById('btn-mark-sent');
+  if (btnMarkSent) btnMarkSent.addEventListener('click', markGdprRequestSent);
+
+  const btnCopyGdpr = document.getElementById('btn-copy-gdpr');
+  if (btnCopyGdpr) {
+    btnCopyGdpr.addEventListener('click', () => {
+      const templateArea = document.getElementById('gdpr-template-text');
+      if (templateArea && templateArea.value) {
+        navigator.clipboard.writeText(templateArea.value).then(() => {
+          const original = btnCopyGdpr.textContent;
+          btnCopyGdpr.textContent = '✓ ¡Copiado!';
+          btnCopyGdpr.style.borderColor = 'var(--color-emerald)';
+          btnCopyGdpr.style.color = 'var(--color-emerald)';
+          setTimeout(() => {
+            btnCopyGdpr.textContent = original;
+            btnCopyGdpr.style.borderColor = '';
+            btnCopyGdpr.style.color = '';
+          }, 2000);
+        }).catch(() => {
+          templateArea.select();
+          document.execCommand('copy');
+          alert('Plantilla copiada al portapapeles.');
+        });
+      }
+    });
+  }
 
   // Exportar Reporte PDF
   const btnExportPdf = document.getElementById('btn-export-pdf');
@@ -580,7 +649,7 @@ function handleExportPdf() {
     return;
   }
   const token = encodeURIComponent(session.token);
-  window.location.href = `${API_BASE}/reports/footprint-pdf?token=${token}`;
+  window.open(`${API_BASE}/reports/footprint-pdf?token=${token}`, '_blank');
 }
 
 // Cargar Índice de Exposición
@@ -786,17 +855,29 @@ window.scrollToBreaches = function () {
 
 // Navegación rápida al auditor de contraseñas k-Anonymity
 window.goToPasswordAuditor = function () {
-  const pwdInput = document.getElementById('pwd-to-check');
-  if (pwdInput) {
-    pwdInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    pwdInput.focus();
-    pwdInput.style.transition = 'border-color 0.3s, box-shadow 0.3s';
-    pwdInput.style.borderColor = 'var(--color-electric-blue)';
-    pwdInput.style.boxShadow = '0 0 20px rgba(0, 229, 255, 0.5)';
+  const pwdInput = document.getElementById('input-pwd');
+  const card = document.getElementById('pwd-audit-card') || pwdInput;
+
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.style.transition = 'box-shadow 0.4s ease-in-out';
+    card.style.boxShadow = '0 0 35px rgba(0, 229, 255, 0.5)';
     setTimeout(() => {
-      pwdInput.style.borderColor = '';
-      pwdInput.style.boxShadow = '';
+      card.style.boxShadow = '';
     }, 2500);
+  }
+
+  if (pwdInput) {
+    setTimeout(() => {
+      pwdInput.focus();
+      pwdInput.style.transition = 'border-color 0.3s, box-shadow 0.3s';
+      pwdInput.style.borderColor = 'var(--color-electric-blue)';
+      pwdInput.style.boxShadow = '0 0 20px rgba(0, 229, 255, 0.7)';
+      setTimeout(() => {
+        pwdInput.style.borderColor = '';
+        pwdInput.style.boxShadow = '';
+      }, 2500);
+    }, 350);
   }
 };
 
@@ -932,7 +1013,23 @@ async function loadPlatforms(category = '', search = '') {
     const data = await res.json();
 
     if (!data.platforms || data.platforms.length === 0) {
-      elPlatforms.innerHTML = '<div class="skeleton-loader">No se encontraron plataformas que coincidan con la búsqueda.</div>';
+      if (search) {
+        elPlatforms.innerHTML = `
+          <div style="grid-column: 1 / -1; background: rgba(30, 41, 59, 0.6); border: 1px dashed rgba(0, 229, 255, 0.3); border-radius: 12px; padding: 28px; text-align: center;">
+            <p style="color: var(--text-dim); margin-bottom: 8px; font-size: 0.95rem;">
+              No se encontró "<strong>${escapeHtml(search)}</strong>" en el catálogo estándar de plataformas.
+            </p>
+            <p style="color: var(--text-dim); margin-bottom: 18px; font-size: 0.85rem;">
+              Puedes generar automáticamente una solicitud formal de supresión RGPD (Art. 17) personalizada para esta plataforma:
+            </p>
+            <button class="btn btn-primary" onclick="openCustomGdprModal('${escapeHtml(search)}')">
+              📝 Redactar Solicitud RGPD para "${escapeHtml(search)}"
+            </button>
+          </div>
+        `;
+      } else {
+        elPlatforms.innerHTML = '<div class="skeleton-loader">No se encontraron plataformas en esta categoría.</div>';
+      }
       return;
     }
 
@@ -975,6 +1072,44 @@ async function loadPlatforms(category = '', search = '') {
   }
 }
 
+// Abrir Modal GDPR para plataformas fuera de catálogo
+window.openCustomGdprModal = function (platformName) {
+  const cleanName = (platformName || 'Plataforma').trim();
+  currentSelectedPlatform = { id: null, name: cleanName };
+
+  const session = getSession();
+  const userName = session && session.user && session.user.display_name ? session.user.display_name : '[Tu Nombre y Apellidos]';
+  const userEmail = session && session.user && session.user.email ? session.user.email : '[Tu Correo Electrónico]';
+
+  const template = `A la atención del Delegado de Protección de Datos (DPO) / Responsable de Seguridad de ${cleanName}:
+
+Por medio de la presente, yo, ${userName}, con correo electrónico asociado ${userEmail}, ejerciendo los derechos que me confiere el Reglamento General de Protección de Datos (RGPD - Reglamento UE 2016/679) en su Artículo 17 ("Derecho de Supresión" o "Derecho al Olvido"), y normativas aplicables de privacidad:
+
+SOLICITO:
+1. La supresión definitiva, total e irrevocable de todos los datos personales asociados a mi persona que obren en sus ficheros, bases de datos y sistemas de copias de seguridad de ${cleanName}.
+2. La confirmación fehaciente por escrito de la efectiva eliminación en el plazo legal máximo de 30 días estipulado por la normativa.
+3. La notificación de dicha supresión a cualquier tercero o encargado de tratamiento a quien hayan sido comunicados mis datos.
+
+En caso de no recibir respuesta oportuna en el plazo estipulado, me reservo el derecho de elevar la correspondiente reclamación ante la Autoridad de Control de Protección de Datos competente.
+
+Atentamente,
+${userName}
+${userEmail}`;
+
+  document.getElementById('gdpr-modal-title').textContent = `Solicitud de Supresión RGPD — ${cleanName}`;
+  document.getElementById('gdpr-instructions').textContent = `Esta plataforma no cuenta con un canal directo catalogado aún, pero puedes copiar esta solicitud formal o redactar el correo legal a su dirección de soporte / DPO.`;
+  document.getElementById('gdpr-template-text').value = template;
+
+  const linksBox = document.getElementById('gdpr-action-links');
+  linksBox.innerHTML = '';
+  const domainGuess = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const subject = encodeURIComponent(`Solicitud de Supresión de Datos Personales (Art. 17 RGPD) - ${cleanName}`);
+  const body = encodeURIComponent(template);
+  linksBox.innerHTML += `<a href="mailto:privacy@${domainGuess}.com?subject=${subject}&body=${body}" class="btn btn-sm btn-secondary">Redactar Correo Legal al DPO</a>`;
+
+  document.getElementById('gdpr-modal').classList.remove('hidden');
+};
+
 // Abrir Modal GDPR
 window.openGdprModal = async function (platformId) {
   try {
@@ -1011,14 +1146,20 @@ async function markGdprRequestSent() {
   if (!currentSelectedPlatform) return;
 
   try {
+    const payload = {
+      status: 'sent',
+      notes: 'Solicitud formal de derecho al olvido enviada por el usuario.'
+    };
+    if (currentSelectedPlatform.id) {
+      payload.platformId = currentSelectedPlatform.id;
+    } else {
+      payload.platformName = currentSelectedPlatform.name;
+    }
+
     await fetchAuth('/requests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        platformId: currentSelectedPlatform.id,
-        status: 'sent',
-        notes: 'Solicitud formal de derecho al olvido enviada por el usuario.'
-      })
+      body: JSON.stringify(payload)
     });
 
     document.getElementById('gdpr-modal').classList.add('hidden');
@@ -1101,32 +1242,97 @@ window.completeRequest = async function (requestId) {
 async function auditPassword() {
   const pwdInput = document.getElementById('input-pwd');
   const pwdFeedback = document.getElementById('pwd-result');
-  const val = pwdInput.value;
+  const btnCheck = document.getElementById('btn-check-pwd');
+  const val = pwdInput ? pwdInput.value : '';
+
+  if (!pwdFeedback) return;
 
   if (!val) {
-    pwdFeedback.textContent = 'Ingresa una contraseña para probar.';
-    pwdFeedback.style.color = '#f59e0b';
+    pwdFeedback.innerHTML = `
+      <div class="pwd-feedback-banner info" style="border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
+        ⚠️ Por favor, ingresa una contraseña para auditar con k-Anonymity.
+      </div>
+    `;
+    if (pwdInput) pwdInput.focus();
     return;
   }
 
-  pwdFeedback.textContent = 'Consultando prefijo hash SHA-1 de 5 caracteres...';
-  pwdFeedback.style.color = '#94a3b8';
+  if (btnCheck) {
+    btnCheck.disabled = true;
+    btnCheck.textContent = 'Auditando...';
+  }
+
+  pwdFeedback.innerHTML = `
+    <div class="pwd-feedback-banner info">
+      🔒 Calculando SHA-1 local y consultando prefijo de 5 caracteres con Cloudflare k-Anonymity...
+    </div>
+  `;
 
   try {
-    const res = await fetchAuth('/scan/password', {
+    const session = getSession();
+    const headers = { 'Content-Type': 'application/json' };
+    if (session && session.token) {
+      headers['Authorization'] = `Bearer ${session.token}`;
+      headers['x-user-id'] = session.user.id;
+    }
+
+    const res = await fetch(`${API_BASE}/scan/password`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ password: val })
     });
 
     const data = await res.json();
-    pwdFeedback.textContent = data.advice;
-    pwdFeedback.style.color = data.pwned ? '#ef4444' : '#10b981';
+
+    if (!res.ok) {
+      pwdFeedback.innerHTML = `
+        <div class="pwd-feedback-banner pwned">
+          <div style="font-weight: 700;">⚠️ ${escapeHtml(data.error || 'Error al auditar contraseña')}</div>
+          <div style="font-size: 0.82rem; margin-top: 4px;">No se pudo completar la verificación con el servidor de incidentes.</div>
+        </div>
+      `;
+      return;
+    }
+
+    if (data.pwned) {
+      const countFormatted = Number(data.count || 0).toLocaleString();
+      pwdFeedback.innerHTML = `
+        <div class="pwd-feedback-banner pwned">
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">⚠️ Contraseña Comprometida en Filtraciones Públicas</div>
+          <div style="font-size: 0.85rem; line-height: 1.4;">${escapeHtml(data.advice || 'Esta contraseña ha sido expuesta.')}</div>
+          <div style="margin-top: 6px; font-size: 0.78rem; opacity: 0.9;">
+            Detectada en <strong>${countFormatted}</strong> registros públicos de incidentes. Si la usas activamente, cámbiala de inmediato.
+          </div>
+        </div>
+      `;
+    } else {
+      pwdFeedback.innerHTML = `
+        <div class="pwd-feedback-banner safe">
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">✓ Contraseña Segura (Sin Filtración Detectada)</div>
+          <div style="font-size: 0.85rem; line-height: 1.4;">${escapeHtml(data.advice || 'No se encontró registro de filtración pública.')}</div>
+          <div style="margin-top: 6px; font-size: 0.78rem; opacity: 0.9;">
+            Tu contraseña no figura en los catálogos públicos analizados por HaveIBeenPwned con k-Anonymity.
+          </div>
+        </div>
+      `;
+    }
   } catch (err) {
-    pwdFeedback.textContent = 'Error al verificar contraseña';
-    pwdFeedback.style.color = '#ef4444';
+    console.error('Error al verificar contraseña:', err);
+    pwdFeedback.innerHTML = `
+      <div class="pwd-feedback-banner pwned">
+        <div style="font-weight: 700;">⚠️ Error de Conexión</div>
+        <div style="font-size: 0.82rem; margin-top: 4px;">No se pudo conectar con el servicio k-Anonymity. Comprueba tu conexión a internet o intenta más tarde.</div>
+      </div>
+    `;
+  } finally {
+    if (btnCheck) {
+      btnCheck.disabled = false;
+      btnCheck.textContent = 'Auditar';
+    }
   }
 }
+
+window.auditPassword = auditPassword;
 
 function escapeHtml(str) {
   if (!str) return '';

@@ -70,10 +70,24 @@ router.get('/', authenticate, (req, res) => {
 // POST /api/v1/requests - Crear o registrar solicitud de eliminación
 router.post('/', authenticate, (req, res) => {
   try {
-    const { platformId, identityId, notes, status } = req.body;
+    let { platformId, platformName, identityId, notes, status } = req.body;
+
+    if (!platformId && platformName) {
+      const trimmedName = String(platformName).trim();
+      let foundPlat = db.get('SELECT id, name FROM platforms WHERE LOWER(name) = LOWER(?)', [trimmedName]);
+      if (!foundPlat) {
+        const insertRes = db.run(`
+          INSERT INTO platforms (name, category, difficulty, deletion_method, instructions)
+          VALUES (?, 'otras', 3, 'email', 'Solicitud RGPD por correo electrónico generada por Sentinel.')
+        `, [trimmedName]);
+        platformId = insertRes.lastInsertRowid;
+      } else {
+        platformId = foundPlat.id;
+      }
+    }
 
     if (!platformId) {
-      return res.status(400).json({ error: 'platformId es obligatorio' });
+      return res.status(400).json({ error: 'platformId o platformName es obligatorio' });
     }
 
     const platform = db.get('SELECT id, name FROM platforms WHERE id = ?', [platformId]);
@@ -96,7 +110,13 @@ router.post('/', authenticate, (req, res) => {
         WHERE id = ?
       `, [initialStatus, now, notes || null, existing.id]);
 
-      const updated = db.get('SELECT * FROM deletion_requests WHERE id = ?', [existing.id]);
+      const updated = db.get(`
+        SELECT r.*, p.name as platform_name, p.category as platform_category,
+               p.deletion_url, p.deletion_method, p.deletion_email
+        FROM deletion_requests r
+        JOIN platforms p ON r.platform_id = p.id
+        WHERE r.id = ?
+      `, [existing.id]);
       return res.json({
         success: true,
         message: `Solicitud para ${platform.name} actualizada con nuevo plazo de 30 días`,
@@ -111,7 +131,13 @@ router.post('/', authenticate, (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [requestId, req.user.id, platformId, identityId || null, initialStatus, now, notes || null]);
 
-    const created = db.get('SELECT * FROM deletion_requests WHERE id = ?', [requestId]);
+    const created = db.get(`
+      SELECT r.*, p.name as platform_name, p.category as platform_category,
+             p.deletion_url, p.deletion_method, p.deletion_email
+      FROM deletion_requests r
+      JOIN platforms p ON r.platform_id = p.id
+      WHERE r.id = ?
+    `, [requestId]);
 
     res.status(201).json({
       success: true,

@@ -299,6 +299,18 @@ function seedPlatforms() {
       'Solicito la eliminación completa de mi cuenta personal de GitHub y repositorios privados.',
       2, '1. Settings > Account > Delete your account.\n2. Confirma escribiendo tu nombre de usuario y contraseña.'
     ],
+    [
+      'Adobe', 'bigtech', 'https://adobe.com',
+      'https://account.adobe.com/privacy', 'form', null,
+      'Solicito la eliminación definitiva de mi cuenta de Adobe ID y la supresión permanente de todos mis datos personales asociados conforme al Artículo 17 del RGPD.',
+      2, '1. Inicia sesión en account.adobe.com/privacy.\n2. Desplázate hasta "Eliminar cuenta de Adobe".\n3. Sigue las instrucciones y confirma tu contraseña.'
+    ],
+    [
+      'Canva', 'bigtech', 'https://canva.com',
+      'https://www.canva.com/settings/your-account', 'form', null,
+      'Solicito la supresión definitiva de mi cuenta de Canva, diseños y datos personales bajo la directiva RGPD/GDPR.',
+      1, '1. Entra en Canva > Configuración de la cuenta.\n2. En la pestaña "Tu cuenta", baja hasta "Eliminar cuenta".\n3. Confirma tu clave y pulsa Eliminar cuenta.'
+    ],
 
     // === 4. STREAMING & ENTRETENIMIENTO ===
     [

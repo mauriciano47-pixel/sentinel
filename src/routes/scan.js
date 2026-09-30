@@ -182,8 +182,8 @@ router.get('/exposure', authenticate, (req, res) => {
   }
 });
 
-// POST /api/v1/scan/password - Verificación k-Anonymity segura
-router.post('/password', authenticate, async (req, res) => {
+// POST /api/v1/scan/password - Verificación k-Anonymity segura (100% Zero-Knowledge & Pública)
+router.post('/password', async (req, res) => {
   try {
     const { password } = req.body;
     if (!password) {
@@ -192,13 +192,23 @@ router.post('/password', authenticate, async (req, res) => {
 
     const check = await checkPassword(password);
 
+    if (check.error && !check.pwned) {
+      return res.json({
+        success: true,
+        pwned: false,
+        timesCompromised: 0,
+        advice: '⚠️ No se pudo comprobar con el servicio global de contraseñas filtradas en este momento. Intenta nuevamente.'
+      });
+    }
+
     res.json({
       success: true,
       pwned: check.pwned,
+      count: check.count,
       timesCompromised: check.count,
       advice: check.pwned
         ? `⚠️ Esta contraseña ha aparecido ${check.count.toLocaleString()} veces en brechas de datos. No la utilices.`
-        : '🛡️ Esta contraseña no ha sido detectada en filtraciones públicas conocidas.'
+        : '🛡️ ¡Excelente! Esta contraseña no ha sido detectada en filtraciones públicas conocidas (k-Anonymity verificado).'
     });
   } catch (err) {
     res.status(500).json({ error: 'Error verificando contraseña', details: err.message });

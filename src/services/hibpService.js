@@ -241,11 +241,15 @@ async function checkPassword(password) {
   const suffix = hash.substring(5);
 
   try {
+    const https = require('node:https');
+    const agent = new https.Agent({ rejectUnauthorized: false });
+
     const response = await axios.get(
       `https://api.pwnedpasswords.com/range/${prefix}`,
       {
         headers: { 'Add-Padding': 'true', 'user-agent': 'Sentinel-Privacy-Agent/1.0' },
-        timeout: 5000
+        timeout: 7000,
+        httpsAgent: agent
       }
     );
 
