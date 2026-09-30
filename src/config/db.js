@@ -183,9 +183,9 @@ function seedPlatforms() {
     ],
     [
       'Pinterest', 'social', 'https://pinterest.com',
-      'https://www.pinterest.com/settings/account-settings', 'form', 'privacy-support@pinterest.com',
-      'Solicito el cierre de mi cuenta de Pinterest y la desindexación de mis tableros y datos analíticos personales.',
-      2, '1. Ve a Ajustes > Gestión de cuenta.\n2. En la sección "Eliminar cuenta", pulsa en Cerrar cuenta.\n3. Confirma el correo de verificación recibido.'
+      'https://www.pinterest.com/settings/account-settings', 'form', null,
+      'Solicito el cierre definitivo de mi cuenta de Pinterest y la desindexación de mis tableros y datos analíticos personales conforme al RGPD.',
+      2, '1. Ve a Ajustes > Gestión de cuenta en la web o app.\n2. En la sección "Eliminar cuenta", pulsa en Cerrar cuenta.\n3. Confirma el correo de verificación recibido.\n(Nota: Pinterest no procesa bajas por correo externo).'
     ],
     [
       'LinkedIn', 'social', 'https://linkedin.com',
@@ -201,9 +201,9 @@ function seedPlatforms() {
     ],
     [
       'BeReal', 'social', 'https://bereal.com',
-      null, 'form', 'contact@bereal.com',
-      'Solicito el borrado de mis fotos diarias BeReal y datos de localización asociados conforme al RGPD.',
-      2, '1. En la app: Perfil > Ajustes > Ayuda > Contáctanos > Eliminar mi cuenta.\n2. Confirma la purga de datos.'
+      'https://help.bereal.com', 'form', null,
+      'Solicito el borrado definitivo de mis fotos diarias BeReal y datos de localización asociados conforme al RGPD.',
+      2, '1. En la app: Perfil > Ajustes (icono engranaje) > "Otros" > "Eliminar mi cuenta".\n2. Confirma la purga (se elimina definitivamente en 15 días).\n(Nota: BeReal no atiende bajas por correo directo).'
     ],
     [
       'Tumblr', 'social', 'https://tumblr.com',
@@ -265,9 +265,9 @@ function seedPlatforms() {
     ],
     [
       'Amazon', 'bigtech', 'https://amazon.com',
-      'https://www.amazon.com/privacy/data-deletion', 'form', 'privacy@amazon.com',
+      'https://www.amazon.com/privacy/data-deletion', 'form', null,
       'Solicito la eliminación definitiva de mi cuenta de cliente de Amazon y el borrado de historiales de compra y direcciones almacenadas conforme al RGPD.',
-      3, '1. Visita la página oficial de Solicitud de Cierre de Cuenta de Amazon.\n2. Marca la casilla de confirmación y pulsa "Cerrar mi cuenta permanentemente".'
+      3, '1. Visita la página oficial de Solicitud de Cierre de Cuenta de Amazon.\n2. Marca la casilla de confirmación y pulsa "Cerrar mi cuenta permanentemente".\n3. Confirma el enlace recibido por SMS o email.\n(Nota: Amazon no gestiona cierres de cuenta por email para proteger contra suplantaciones).'
     ],
     [
       'Yahoo', 'bigtech', 'https://yahoo.com',
@@ -291,7 +291,7 @@ function seedPlatforms() {
     // === 4. STREAMING & ENTRETENIMIENTO ===
     [
       'Netflix', 'streaming', 'https://netflix.com',
-      null, 'email', 'privacy@netflix.com',
+      'https://www.netflix.com/youraccount', 'form', 'privacy@netflix.com',
       'Solicito la supresión anticipada y definitiva de mis datos personales e historial de streaming en Netflix conforme al RGPD tras haber cancelado mi membresía.',
       3, '1. Cancela tu membresía activa en Cuenta.\n2. Envía un correo a privacy@netflix.com desde el email registrado solicitando la supresión anticipada (de lo contrario retienen 10 meses).'
     ],
@@ -341,9 +341,9 @@ function seedPlatforms() {
     // === 5. FINTECH & COMERCIO ===
     [
       'PayPal', 'fintech_comercio', 'https://paypal.com',
-      'https://www.paypal.com/myaccount/settings', 'form', 'enquiry@paypal.com',
+      'https://www.paypal.com/myaccount/settings', 'form', null,
       'Solicito el cierre de mi cuenta PayPal y la eliminación de mis datos financieros tras la retención legal obligatoria de prevención de fraude.',
-      3, '1. Inicia sesión > Ajustes (icono de engranaje).\n2. En la pestaña Cuenta, ve al fondo y haz clic en "Cerrar cuenta".\n3. Confirma que tu saldo esté en cero.'
+      3, '1. Inicia sesión en paypal.com > Ajustes (engranaje) > pestaña "Cuenta".\n2. Al fondo, haz clic en "Cerrar cuenta".\n3. Confirma que tu saldo esté en cero.\n(Nota: PayPal no atiende bajas por correo externo para evitar fraude; se realiza autenticado en la web).'
     ],
     [
       'MercadoLibre', 'fintech_comercio', 'https://mercadolibre.com',
@@ -365,9 +365,9 @@ function seedPlatforms() {
     ],
     [
       'Airbnb', 'fintech_comercio', 'https://airbnb.com',
-      'https://www.airbnb.com/help/article/240', 'form', 'dpo@airbnb.com',
+      'https://www.airbnb.com/privacy/manage-your-data', 'form', 'dpo@airbnb.com',
       'Solicito la eliminación de mi cuenta de huésped/anfitrión en Airbnb conforme al Art. 17 RGPD.',
-      3, '1. Cuenta > Privacidad y uso compartido.\n2. Haz clic en "Solicitar la eliminación de tu cuenta".'
+      3, '1. Entra a airbnb.com/privacy/manage-your-data.\n2. Haz clic en "Solicitar la eliminación de tu cuenta" y confirma tu identidad.\n3. Si tienes dudas legales, puedes contactar al DPO en dpo@airbnb.com.'
     ],
     [
       'AliExpress', 'fintech_comercio', 'https://aliexpress.com',
@@ -377,9 +377,9 @@ function seedPlatforms() {
     ],
     [
       'Rappi', 'fintech_comercio', 'https://rappi.com',
-      null, 'email', 'habeasdata@rappi.com',
-      'Solicito la eliminación de mi cuenta en Rappi y la supresión de mis direcciones y teléfonos registrados.',
-      3, '1. Envía un correo a habeasdata@rappi.com solicitando la eliminación de tus datos personales.\n2. Adjunta documento identificativo si te lo solicitan.'
+      'https://ayuda.rappi.com', 'form', 'protecciondedatos@rappi.com',
+      'Solicito la eliminación de mi cuenta en Rappi y la supresión de mis direcciones y teléfonos registrados conforme al RGPD.',
+      3, '1. En la app: Mi Perfil > Centro de Ayuda > "Con mi cuenta" > "Quiero eliminar mi cuenta".\n2. Si requieres trámite por correo formal, envía tu solicitud a protecciondedatos@rappi.com indicando tu documento registrado.'
     ],
     [
       'Cabify', 'fintech_comercio', 'https://cabify.com',
@@ -435,33 +435,33 @@ function seedPlatforms() {
     // === 7. DATA BROKERS (BROKERS DE DATOS & BUSCADORES DE PERSONAS) ===
     [
       'Whitepages', 'data_brokers', 'https://whitepages.com',
-      'https://www.whitepages.com/suppression-requests', 'form', 'privacy@whitepages.com',
+      'https://www.whitepages.com/suppression-requests', 'form', null,
       'Solicito el opt-out inmediato y la eliminación completa de mis registros públicos, teléfonos y direcciones indexadas en Whitepages.',
-      3, '1. Busca tu perfil en whitepages.com y copia la URL.\n2. Ve a whitepages.com/suppression-requests.\n3. Pega la URL y completa la verificación telefónica automatizada.'
+      3, '1. Busca tu perfil en whitepages.com y copia la URL.\n2. Ve a whitepages.com/suppression-requests y pega la URL.\n3. Completa la verificación telefónica automatizada.\n(Nota: Whitepages no acepta solicitudes por correo directo, solo vía formulario oficial de supresión).'
     ],
     [
       'Spokeo', 'data_brokers', 'https://spokeo.com',
-      'https://www.spokeo.com/optout', 'form', 'privacy@spokeo.com',
+      'https://www.spokeo.com/optout', 'form', null,
       'Solicito la supresión definitiva de mi perfil y registros agregados en el portal Spokeo conforme a la CCPA/RGPD.',
-      3, '1. Busca tu registro en Spokeo y copia el enlace.\n2. Ingresa a spokeo.com/optout.\n3. Pega el enlace y confirma mediante el enlace recibido en tu correo.'
+      3, '1. Busca tu registro en spokeo.com y copia el enlace.\n2. Ingresa a spokeo.com/optout y pega el enlace.\n3. Confirma mediante el enlace de verificación recibido en tu correo.\n(Nota: Trámite exclusivo vía portal de opt-out).'
     ],
     [
       'Radaris', 'data_brokers', 'https://radaris.com',
-      'https://radaris.com/control/privacy', 'form', 'customer-service@radaris.com',
+      'https://radaris.com/control/privacy', 'form', null,
       'Solicito la remoción permanente de mis datos personales del motor de búsqueda Radaris.',
-      3, '1. Encuentra tu perfil en Radaris.\n2. Ve a radaris.com/control/privacy y solicita la eliminación de registros.'
+      3, '1. Encuentra tu perfil en radaris.com.\n2. Ve a radaris.com/control/privacy y solicita la eliminación de registros directamente en la plataforma.'
     ],
     [
       'BeenVerified', 'data_brokers', 'https://beenverified.com',
-      'https://www.beenverified.com/app/optout/search', 'form', 'privacy@beenverified.com',
+      'https://www.beenverified.com/app/optout/search', 'form', null,
       'Solicito el ejercicio de mi derecho de exclusión (opt-out) y borrado total de antecedentes en BeenVerified.',
-      3, '1. Ingresa a beenverified.com/app/optout/search.\n2. Busca tu nombre y selecciona tu registro.\n3. Confirma el enlace recibido por email.'
+      3, '1. Ingresa a beenverified.com/app/optout/search.\n2. Busca tu nombre y selecciona tu registro.\n3. Confirma el enlace recibido por email.\n(Nota: BeenVerified no admite solicitudes por email externo).'
     ],
     [
       'FastPeopleSearch', 'data_brokers', 'https://fastpeoplesearch.com',
-      'https://www.fastpeoplesearch.com/removal', 'form', 'privacy@fastpeoplesearch.com',
+      'https://www.fastpeoplesearch.com/removal', 'form', null,
       'Solicito la eliminación de mi registro de FastPeopleSearch y la purga de asociaciones familiares y domiciliarias.',
-      2, '1. Visita fastpeoplesearch.com/removal.\n2. Acepta los términos y busca tu ficha.\n3. Haz clic en "Remove my record".'
+      2, '1. Visita fastpeoplesearch.com/removal.\n2. Acepta los términos y busca tu ficha.\n3. Haz clic en "Remove my record".\n(Nota: Tramitación exclusiva vía webform oficial).'
     ]
   ];
 
