@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "https://sentinel-app.up.railway.app/$1"
+    }
+  ]
+}
