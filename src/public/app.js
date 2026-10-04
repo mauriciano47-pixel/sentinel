@@ -40,6 +40,27 @@ const planModal = document.getElementById('plan-modal');
 const btnClosePlanModal = document.getElementById('btn-close-plan-modal');
 
 // ==========================================
+// 🛡️ SANITIZACIÓN XSS & DOM SEGURO (OWASP ZERO-XSS)
+// ==========================================
+function setSafeHtml(element, htmlContent) {
+  if (!element) return;
+  element.replaceChildren();
+  if (!htmlContent) return;
+  const parsed = new DOMParser().parseFromString(htmlContent, 'text/html');
+  while (parsed.body.firstChild) {
+    element.appendChild(parsed.body.firstChild);
+  }
+}
+
+function appendSafeHtml(element, htmlContent) {
+  if (!element || !htmlContent) return;
+  const parsed = new DOMParser().parseFromString(htmlContent, 'text/html');
+  while (parsed.body.firstChild) {
+    element.appendChild(parsed.body.firstChild);
+  }
+}
+
+// ==========================================
 // 1. GESTIÓN DE SESIÓN LOCAL SOBERANA
 // ==========================================
 
@@ -184,12 +205,12 @@ function renderLoggedOutState() {
   elRiskBadge.style.color = '#94a3b8';
   elRiskSummary.textContent = 'Autentica tu identidad o clave para desbloquear la bóveda de soberanía.';
 
-  elIdentities.innerHTML = '<div class="skeleton-loader">Identidades bloqueadas. Autentícate para ver tus registros.</div>';
+  setSafeHtml(elIdentities, '<div class="skeleton-loader">Identidades bloqueadas. Autentícate para ver tus registros.</div>');
   const breachesWrapper = document.getElementById('breaches-list');
   if (breachesWrapper) {
-    breachesWrapper.innerHTML = '<div class="skeleton-loader">Feed de incidentes bloqueado. Autentícate para ver tus registros.</div>';
+    setSafeHtml(breachesWrapper, '<div class="skeleton-loader">Feed de incidentes bloqueado. Autentícate para ver tus registros.</div>');
   }
-  elRequests.innerHTML = '<div class="skeleton-loader">Sin solicitudes visibles.</div>';
+  setSafeHtml(elRequests, '<div class="skeleton-loader">Sin solicitudes visibles.</div>');
 }
 
 function updateUserHeader(user) {
@@ -691,15 +712,15 @@ async function loadIdentities() {
     const data = await res.json();
 
     if (!data.identities || data.identities.length === 0) {
-      elIdentities.innerHTML = `
+      setSafeHtml(elIdentities, `
         <div class="skeleton-loader">
           No tienes identidades registradas. Haz clic en <strong>+ Agregar Identidad</strong> para comenzar a monitorear tus correos y teléfonos.
         </div>
-      `;
+      `);
       return;
     }
 
-    elIdentities.innerHTML = data.identities.map(id => `
+    setSafeHtml(elIdentities, data.identities.map(id => `
       <div class="identity-row">
         <div class="identity-info">
           <span class="type-tag">${escapeHtml(id.type)}</span>
@@ -715,9 +736,9 @@ async function loadIdentities() {
           <button class="btn-icon" onclick="deleteIdentity('${id.id}')" title="Eliminar" aria-label="Eliminar identidad">&times;</button>
         </div>
       </div>
-    `).join('');
+    `).join(''));
   } catch (err) {
-    elIdentities.innerHTML = '<div class="skeleton-loader">Error al conectar con la API de identidades.</div>';
+    setSafeHtml(elIdentities, '<div class="skeleton-loader">Error al conectar con la API de identidades.</div>');
   }
 }
 
@@ -748,7 +769,7 @@ async function loadBreaches() {
     }
 
     if (breaches.length === 0) {
-      breachesWrapper.innerHTML = `
+      setSafeHtml(breachesWrapper, `
         <div class="empty-breaches-state">
           <div style="font-size: 2rem; margin-bottom: 8px;">🛡️</div>
           <h4 style="color: var(--color-emerald); margin-bottom: 6px;">Bóveda Segura — Sin Filtraciones Críticas Detectadas</h4>
@@ -756,11 +777,11 @@ async function loadBreaches() {
             Tus identidades monitoreadas no presentan brechas activas conocidas en bases de datos de incidentes públicos. Puedes ejecutar un escaneo global en cualquier momento.
           </p>
         </div>
-      `;
+      `);
       return;
     }
 
-    breachesWrapper.innerHTML = breaches.map(b => {
+    setSafeHtml(breachesWrapper, breaches.map(b => {
       const isMitigated = !!b.is_mitigated;
       const dataClasses = Array.isArray(b.compromisedData) ? b.compromisedData : [];
 
@@ -832,11 +853,11 @@ async function loadBreaches() {
           </div>
         </div>
       `;
-    }).join('');
+    }).join(''));
 
   } catch (err) {
     console.error('Error cargando brechas:', err);
-    breachesWrapper.innerHTML = '<div class="skeleton-loader">Error al consultar el feed de incidentes.</div>';
+    setSafeHtml(breachesWrapper, '<div class="skeleton-loader">Error al consultar el feed de incidentes.</div>');
   }
 }
 
@@ -1014,7 +1035,7 @@ async function loadPlatforms(category = '', search = '') {
 
     if (!data.platforms || data.platforms.length === 0) {
       if (search) {
-        elPlatforms.innerHTML = `
+        setSafeHtml(elPlatforms, `
           <div style="grid-column: 1 / -1; background: rgba(30, 41, 59, 0.6); border: 1px dashed rgba(0, 229, 255, 0.3); border-radius: 12px; padding: 28px; text-align: center;">
             <p style="color: var(--text-dim); margin-bottom: 8px; font-size: 0.95rem;">
               No se encontró "<strong>${escapeHtml(search)}</strong>" en el catálogo estándar de plataformas.
@@ -1026,14 +1047,14 @@ async function loadPlatforms(category = '', search = '') {
               📝 Redactar Solicitud RGPD para "${escapeHtml(search)}"
             </button>
           </div>
-        `;
+        `);
       } else {
-        elPlatforms.innerHTML = '<div class="skeleton-loader">No se encontraron plataformas en esta categoría.</div>';
+        setSafeHtml(elPlatforms, '<div class="skeleton-loader">No se encontraron plataformas en esta categoría.</div>');
       }
       return;
     }
 
-    elPlatforms.innerHTML = data.platforms.map(p => {
+    setSafeHtml(elPlatforms, data.platforms.map(p => {
       const isCompleted = p.userStatus === 'completed';
       const isSent = p.userStatus === 'sent';
 
@@ -1066,9 +1087,9 @@ async function loadPlatforms(category = '', search = '') {
           </div>
         </div>
       `;
-    }).join('');
+    }).join(''));
   } catch (err) {
-    elPlatforms.innerHTML = '<div class="skeleton-loader">Error al cargar plataformas.</div>';
+    setSafeHtml(elPlatforms, '<div class="skeleton-loader">Error al cargar plataformas.</div>');
   }
 }
 
@@ -1101,11 +1122,11 @@ ${userEmail}`;
   document.getElementById('gdpr-template-text').value = template;
 
   const linksBox = document.getElementById('gdpr-action-links');
-  linksBox.innerHTML = '';
+  setSafeHtml(linksBox, '');
   const domainGuess = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '');
   const subject = encodeURIComponent(`Solicitud de Supresión de Datos Personales (Art. 17 RGPD) - ${cleanName}`);
   const body = encodeURIComponent(template);
-  linksBox.innerHTML += `<a href="mailto:privacy@${domainGuess}.com?subject=${subject}&body=${body}" class="btn btn-sm btn-secondary">Redactar Correo Legal al DPO</a>`;
+  appendSafeHtml(linksBox, `<a href="mailto:privacy@${domainGuess}.com?subject=${subject}&body=${body}" class="btn btn-sm btn-secondary">Redactar Correo Legal al DPO</a>`);
 
   document.getElementById('gdpr-modal').classList.remove('hidden');
 };
@@ -1123,16 +1144,16 @@ window.openGdprModal = async function (platformId) {
     document.getElementById('gdpr-template-text').value = data.customizedGdprTemplate || '';
 
     const linksBox = document.getElementById('gdpr-action-links');
-    linksBox.innerHTML = '';
+    setSafeHtml(linksBox, '');
 
     if (data.platform.deletion_url) {
-      linksBox.innerHTML += `<a href="${data.platform.deletion_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline">Abrir Portal de Eliminación Oficial</a> `;
+      appendSafeHtml(linksBox, `<a href="${data.platform.deletion_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline">Abrir Portal de Eliminación Oficial</a> `);
     }
 
     if (data.platform.deletion_email) {
       const subject = encodeURIComponent(`Solicitud de Supresión de Datos Personales (Art. 17 RGPD)`);
       const body = encodeURIComponent(data.customizedGdprTemplate);
-      linksBox.innerHTML += `<a href="mailto:${data.platform.deletion_email}?subject=${subject}&body=${body}" class="btn btn-sm btn-secondary">Redactar Correo Legal al DPO</a>`;
+      appendSafeHtml(linksBox, `<a href="mailto:${data.platform.deletion_email}?subject=${subject}&body=${body}" class="btn btn-sm btn-secondary">Redactar Correo Legal al DPO</a>`);
     }
 
     document.getElementById('gdpr-modal').classList.remove('hidden');
@@ -1179,11 +1200,11 @@ async function loadRequests() {
     const data = await res.json();
 
     if (!data.requests || data.requests.length === 0) {
-      elRequests.innerHTML = '<div class="skeleton-loader">No hay solicitudes de borrado activas aún.</div>';
+      setSafeHtml(elRequests, '<div class="skeleton-loader">No hay solicitudes de borrado activas aún.</div>');
       return;
     }
 
-    elRequests.innerHTML = data.requests.map(r => {
+    setSafeHtml(elRequests, data.requests.map(r => {
       let deadlineBadge = '';
       if (r.status === 'completed') {
         deadlineBadge = '<span class="badge-tag" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">✓ Datos Purgados</span>';
@@ -1216,9 +1237,9 @@ async function loadRequests() {
           </div>
         </div>
       `;
-    }).join('');
+    }).join(''));
   } catch (err) {
-    elRequests.innerHTML = '<div class="skeleton-loader">Error cargando solicitudes.</div>';
+    setSafeHtml(elRequests, '<div class="skeleton-loader">Error cargando solicitudes.</div>');
   }
 }
 
@@ -1248,11 +1269,11 @@ async function auditPassword() {
   if (!pwdFeedback) return;
 
   if (!val) {
-    pwdFeedback.innerHTML = `
+    setSafeHtml(pwdFeedback, `
       <div class="pwd-feedback-banner info" style="border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
         ⚠️ Por favor, ingresa una contraseña para auditar con k-Anonymity.
       </div>
-    `;
+    `);
     if (pwdInput) pwdInput.focus();
     return;
   }
@@ -1262,11 +1283,11 @@ async function auditPassword() {
     btnCheck.textContent = 'Auditando...';
   }
 
-  pwdFeedback.innerHTML = `
+  setSafeHtml(pwdFeedback, `
     <div class="pwd-feedback-banner info">
       🔒 Calculando SHA-1 local y consultando prefijo de 5 caracteres con Cloudflare k-Anonymity...
     </div>
-  `;
+  `);
 
   try {
     const session = getSession();
@@ -1285,18 +1306,18 @@ async function auditPassword() {
     const data = await res.json();
 
     if (!res.ok) {
-      pwdFeedback.innerHTML = `
+      setSafeHtml(pwdFeedback, `
         <div class="pwd-feedback-banner pwned">
           <div style="font-weight: 700;">⚠️ ${escapeHtml(data.error || 'Error al auditar contraseña')}</div>
           <div style="font-size: 0.82rem; margin-top: 4px;">No se pudo completar la verificación con el servidor de incidentes.</div>
         </div>
-      `;
+      `);
       return;
     }
 
     if (data.pwned) {
       const countFormatted = Number(data.count || 0).toLocaleString();
-      pwdFeedback.innerHTML = `
+      setSafeHtml(pwdFeedback, `
         <div class="pwd-feedback-banner pwned">
           <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">⚠️ Contraseña Comprometida en Filtraciones Públicas</div>
           <div style="font-size: 0.85rem; line-height: 1.4;">${escapeHtml(data.advice || 'Esta contraseña ha sido expuesta.')}</div>
@@ -1304,9 +1325,9 @@ async function auditPassword() {
             Detectada en <strong>${countFormatted}</strong> registros públicos de incidentes. Si la usas activamente, cámbiala de inmediato.
           </div>
         </div>
-      `;
+      `);
     } else {
-      pwdFeedback.innerHTML = `
+      setSafeHtml(pwdFeedback, `
         <div class="pwd-feedback-banner safe">
           <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">✓ Contraseña Segura (Sin Filtración Detectada)</div>
           <div style="font-size: 0.85rem; line-height: 1.4;">${escapeHtml(data.advice || 'No se encontró registro de filtración pública.')}</div>
@@ -1314,16 +1335,16 @@ async function auditPassword() {
             Tu contraseña no figura en los catálogos públicos analizados por HaveIBeenPwned con k-Anonymity.
           </div>
         </div>
-      `;
+      `);
     }
   } catch (err) {
     console.error('Error al verificar contraseña:', err);
-    pwdFeedback.innerHTML = `
+    setSafeHtml(pwdFeedback, `
       <div class="pwd-feedback-banner pwned">
         <div style="font-weight: 700;">⚠️ Error de Conexión</div>
         <div style="font-size: 0.82rem; margin-top: 4px;">No se pudo conectar con el servicio k-Anonymity. Comprueba tu conexión a internet o intenta más tarde.</div>
       </div>
-    `;
+    `);
   } finally {
     if (btnCheck) {
       btnCheck.disabled = false;
