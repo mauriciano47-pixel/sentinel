@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node tests/integration.test.js"
+    "test": "node --test tests/unit_*.test.js && node tests/integration.test.js",
+    "test:unit": "node --test tests/unit_*.test.js",
+    "test:integration": "node tests/integration.test.js"
   },
   "engines": {
     "node": ">=22.5.0"
