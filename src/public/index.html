@@ -98,8 +98,8 @@
           </div>
           <p class="micro-text">Comprueba si una contraseña fue vulnerada. La clave nunca sale de tu equipo.</p>
           <div class="input-group" style="position: relative;">
-            <input type="password" id="input-pwd" placeholder="Ingresa contraseña a auditar..."
-              autocomplete="off" class="cyber-input" style="flex: 1; padding-right: 42px;" aria-label="Contraseña a auditar">
+            <input type="password" id="input-pwd" name="password" placeholder="Ingresa contraseña a auditar..."
+              autocomplete="current-password" class="cyber-input" style="flex: 1; padding-right: 42px;" aria-label="Contraseña a auditar">
             <button type="button" id="btn-toggle-pwd-vis" class="btn-eye-toggle" title="Mostrar u ocultar contraseña" aria-label="Mostrar u ocultar contraseña">👁️</button>
             <button id="btn-check-pwd" class="btn btn-secondary">Auditar</button>
           </div>
@@ -197,7 +197,7 @@
           </select>
 
           <label for="new-id-value" id="label-new-id-value">Correo Electrónico a Monitorear</label>
-          <input type="email" id="new-id-value" class="cyber-input full-width font-mono" placeholder="ejemplo@correo.com" autocomplete="off">
+          <input type="email" id="new-id-value" name="email" class="cyber-input full-width font-mono" placeholder="ejemplo@correo.com" autocomplete="email" autocapitalize="none" spellcheck="false">
           <p id="help-new-id-value" style="font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; margin-bottom: 12px; font-family: var(--font-mono);">
             // RASTREO EN BRECHAS MASIVAS HIBP Y COMBOS GLOBALES //
           </p>
