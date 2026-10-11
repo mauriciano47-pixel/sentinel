@@ -149,8 +149,7 @@ function handleExportPdf() {
   window.open(`${API_BASE}/reports/footprint-pdf?token=${token}`, '_blank');
 }
 
-function setupEventListeners() {
-  // 1. Autenticación y Modales
+function initAuthControls() {
   const btnToggleAuthMode = document.getElementById('btn-toggle-auth-mode');
   const groupAuthName = document.getElementById('group-auth-name');
   const btnAuthSubmit = document.getElementById('btn-auth-submit');
@@ -163,19 +162,13 @@ function setupEventListeners() {
   if (btnToggleAuthMode) {
     btnToggleAuthMode.addEventListener('click', () => {
       clearAuthFeedback();
-      if (currentAuthMode === 'login') {
-        currentAuthMode = 'register';
-        if (groupAuthName) groupAuthName.style.display = 'block';
-        if (btnAuthSubmit) btnAuthSubmit.textContent = '[ REGISTRAR BÓVEDA ]';
-        btnToggleAuthMode.textContent = '¿Ya tienes identidad? Iniciar sesión';
-        if (authName) authName.focus();
-      } else {
-        currentAuthMode = 'login';
-        if (groupAuthName) groupAuthName.style.display = 'none';
-        if (btnAuthSubmit) btnAuthSubmit.textContent = '[ INICIAR SESIÓN ]';
-        btnToggleAuthMode.textContent = '¿Primera vez? Crear nueva identidad';
-        if (authIdentifier) authIdentifier.focus();
-      }
+      const isLogin = currentAuthMode === 'login';
+      currentAuthMode = isLogin ? 'register' : 'login';
+      if (groupAuthName) groupAuthName.style.display = isLogin ? 'block' : 'none';
+      if (btnAuthSubmit) btnAuthSubmit.textContent = isLogin ? '[ REGISTRAR BÓVEDA ]' : '[ INICIAR SESIÓN ]';
+      btnToggleAuthMode.textContent = isLogin ? '¿Ya tienes identidad? Iniciar sesión' : '¿Primera vez? Crear nueva identidad';
+      const targetFocus = isLogin ? authName : authIdentifier;
+      if (targetFocus) targetFocus.focus();
     });
   }
 
@@ -183,39 +176,31 @@ function setupEventListeners() {
   if (btnGoogleAuth) btnGoogleAuth.addEventListener('click', handleGoogleAuth);
   if (btnMasterAccess) btnMasterAccess.addEventListener('click', handleMasterAccess);
   if (btnLogout) btnLogout.addEventListener('click', clearSession);
+}
 
-  // 2. Planes en el Lobby
+function initPlanLobbyControls() {
   if (elUserPlanBadge) {
-    elUserPlanBadge.addEventListener('click', () => {
-      if (planModal) planModal.classList.remove('hidden');
-    });
+    elUserPlanBadge.addEventListener('click', () => planModal && planModal.classList.remove('hidden'));
   }
-
   if (btnClosePlanModal) {
-    btnClosePlanModal.addEventListener('click', () => {
-      if (planModal) planModal.classList.add('hidden');
-    });
+    btnClosePlanModal.addEventListener('click', () => planModal && planModal.classList.add('hidden'));
   }
-
   document.querySelectorAll('.btn-select-lobby-plan').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const selectedPlan = e.target.getAttribute('data-plan');
-      await changePlanFromLobby(selectedPlan);
-    });
+    btn.addEventListener('click', e => changePlanFromLobby(e.target.getAttribute('data-plan')));
   });
+}
 
-  // 3. Escaneo Global HIBP
+function initScanAndAuditControls() {
   const btnRunScan = document.getElementById('btn-run-scan');
   if (btnRunScan) btnRunScan.addEventListener('click', runGlobalScan);
 
-  // 4. Auditor de Contraseñas (k-Anonymity)
   const btnCheckPwd = document.getElementById('btn-check-pwd');
   const inputPwd = document.getElementById('input-pwd');
   const btnTogglePwd = document.getElementById('btn-toggle-pwd-vis');
 
   if (btnCheckPwd) btnCheckPwd.addEventListener('click', auditPassword);
   if (inputPwd) {
-    inputPwd.addEventListener('keydown', (e) => {
+    inputPwd.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
         auditPassword();
@@ -225,19 +210,18 @@ function setupEventListeners() {
 
   if (btnTogglePwd && inputPwd) {
     btnTogglePwd.addEventListener('click', () => {
-      if (inputPwd.type === 'password') {
-        inputPwd.type = 'text';
-        btnTogglePwd.textContent = '🔒';
-        btnTogglePwd.title = 'Ocultar contraseña';
-      } else {
-        inputPwd.type = 'password';
-        btnTogglePwd.textContent = '👁️';
-        btnTogglePwd.title = 'Mostrar contraseña';
-      }
+      const isPass = inputPwd.type === 'password';
+      inputPwd.type = isPass ? 'text' : 'password';
+      btnTogglePwd.textContent = isPass ? '🔒' : '👁️';
+      btnTogglePwd.title = isPass ? 'Ocultar contraseña' : 'Mostrar contraseña';
     });
   }
 
-  // 5. Modal de Identidades
+  const btnExportPdf = document.getElementById('btn-export-pdf');
+  if (btnExportPdf) btnExportPdf.addEventListener('click', handleExportPdf);
+}
+
+function initIdentityModalControls() {
   const idModal = document.getElementById('identity-modal');
   const idTypeSelect = document.getElementById('new-id-type');
   if (idTypeSelect) idTypeSelect.addEventListener('change', updateIdentityModalInputs);
@@ -262,8 +246,9 @@ function setupEventListeners() {
 
   const btnSaveId = document.getElementById('btn-save-id');
   if (btnSaveId) btnSaveId.addEventListener('click', saveNewIdentity);
+}
 
-  // 6. Modal GDPR
+function initGdprModalControls() {
   const gdprModal = document.getElementById('gdpr-modal');
   const btnCloseGdprModal = document.getElementById('btn-close-gdpr-modal');
   if (btnCloseGdprModal) btnCloseGdprModal.addEventListener('click', () => gdprModal && gdprModal.classList.add('hidden'));
@@ -297,12 +282,9 @@ function setupEventListeners() {
       }
     });
   }
+}
 
-  // 7. Reporte PDF
-  const btnExportPdf = document.getElementById('btn-export-pdf');
-  if (btnExportPdf) btnExportPdf.addEventListener('click', handleExportPdf);
-
-  // 8. Filtros de Plataformas
+function initPlatformFilterControls() {
   const filterCat = document.getElementById('filter-category');
   const filterSearch = document.getElementById('filter-search');
 
@@ -318,6 +300,15 @@ function setupEventListeners() {
       debounceTimer = setTimeout(triggerFilter, 250);
     });
   }
+}
+
+function setupEventListeners() {
+  initAuthControls();
+  initPlanLobbyControls();
+  initScanAndAuditControls();
+  initIdentityModalControls();
+  initGdprModalControls();
+  initPlatformFilterControls();
 }
 
 // Exportación universal

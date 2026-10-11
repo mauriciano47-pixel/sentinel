@@ -104,6 +104,71 @@ async function fetchAuth(endpoint, options = {}) {
   return response;
 }
 
+async function executeLogin(identifier, password) {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: identifier, password })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    showAuthFeedback(`[!] ${data.error || 'Acceso denegado.'}`, 'error');
+    return;
+  }
+
+  showAuthFeedback('[✓] Acceso autorizado. Desbloqueando...', 'success');
+  saveSession(data.user, data.token);
+  if (typeof updateUserHeader === 'function') updateUserHeader(data.user);
+
+  setTimeout(() => {
+    hideOnboardingModal();
+    if (typeof loadDashboardData === 'function') loadDashboardData();
+  }, 350);
+}
+
+async function executeRegister(identifier, password, displayName) {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: identifier,
+      password,
+      displayName: displayName || identifier.split('@')[0],
+      plan: 'free'
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    showAuthFeedback(`[!] ${data.error || 'Error creando identidad.'}`, 'error');
+    return;
+  }
+
+  showAuthFeedback('[✓] Identidad registrada con éxito.', 'success');
+  saveSession(data.user, data.token);
+  if (typeof updateUserHeader === 'function') updateUserHeader(data.user);
+
+  if (identifier.includes('@')) {
+    try {
+      await fetchAuth('/identities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'email',
+          value: identifier.toLowerCase(),
+          label: 'Identidad Principal'
+        })
+      });
+    } catch (_) {}
+  }
+
+  setTimeout(() => {
+    hideOnboardingModal();
+    if (typeof loadDashboardData === 'function') loadDashboardData();
+  }, 350);
+}
+
 // Controladores de Auth
 async function handleAuthSubmit(e) {
   if (e && e.preventDefault) e.preventDefault();
@@ -137,68 +202,9 @@ async function handleAuthSubmit(e) {
 
   try {
     if (currentAuthMode === 'login') {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: identifier, password })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        showAuthFeedback(`[!] ${data.error || 'Acceso denegado.'}`, 'error');
-        return;
-      }
-
-      showAuthFeedback('[✓] Acceso autorizado. Desbloqueando...', 'success');
-      saveSession(data.user, data.token);
-      if (typeof updateUserHeader === 'function') updateUserHeader(data.user);
-
-      setTimeout(() => {
-        hideOnboardingModal();
-        if (typeof loadDashboardData === 'function') loadDashboardData();
-      }, 350);
+      await executeLogin(identifier, password);
     } else {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: identifier,
-          password,
-          displayName: displayName || identifier.split('@')[0],
-          plan: 'free'
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        showAuthFeedback(`[!] ${data.error || 'Error creando identidad.'}`, 'error');
-        return;
-      }
-
-      showAuthFeedback('[✓] Identidad registrada con éxito.', 'success');
-      saveSession(data.user, data.token);
-      if (typeof updateUserHeader === 'function') updateUserHeader(data.user);
-
-      if (identifier.includes('@')) {
-        try {
-          await fetchAuth('/identities', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'email',
-              value: identifier.toLowerCase(),
-              label: 'Identidad Principal'
-            })
-          });
-        } catch (_) {}
-      }
-
-      setTimeout(() => {
-        hideOnboardingModal();
-        if (typeof loadDashboardData === 'function') loadDashboardData();
-      }, 350);
+      await executeRegister(identifier, password, displayName);
     }
   } catch (err) {
     showAuthFeedback('[!] Error de conexión con la terminal Sentinel.', 'error');
