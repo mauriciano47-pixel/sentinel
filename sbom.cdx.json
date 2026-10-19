@@ -1,0 +1,64 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-19T01:34:33.658121+00:00",
+    "tools": [
+      {
+        "vendor": "V-GUARD Sentinel",
+        "name": "Institutional Due Diligence Suite",
+        "version": "2.2.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "sentinel",
+      "lockfileSha256": "990df3fe663c142040608edd87da6a97fc796dd27f805142d19b2385ac89cc9c"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "axios",
+      "version": "1.7.9",
+      "purl": "pkg:npm/axios@1.7.9",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "cors",
+      "version": "2.8.5",
+      "purl": "pkg:npm/cors@2.8.5",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "dotenv",
+      "version": "16.4.7",
+      "purl": "pkg:npm/dotenv@16.4.7",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "express",
+      "version": "4.21.2",
+      "purl": "pkg:npm/express@4.21.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "helmet",
+      "version": "8.0.0",
+      "purl": "pkg:npm/helmet@8.0.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "pdfkit",
+      "version": "0.20.2",
+      "purl": "pkg:npm/pdfkit@0.20.2",
+      "scope": "required"
+    }
+  ]
+}

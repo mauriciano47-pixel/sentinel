@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SENTINEL — Guardián de Privacidad & Derecho al Olvido</title>
+  <link rel="stylesheet" href="style.css?v=1.3.7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div class="cyber-container">
+    <!-- Header / Navbar -->
+    <header class="cyber-header">
+      <div class="brand">
+        <div class="shield-badge">
+          <img src="logo_sentinel.png" alt="Sentinel X-Men" class="sentinel-nav-robot" />
+        </div>
+        <div>
+          <h1>SENTINEL</h1>
+          <p class="brand-sub">Soberanía de Datos & Orquestador GDPR</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <button id="btn-export-pdf" class="btn btn-sm btn-outline" aria-label="Descargar Reporte PDF">📥 Reporte PDF</button>
+        <span class="status-indicator live" title="Servidor Sentinel Activo"></span>
+        <div class="user-profile-badge" id="user-profile-badge">
+          <span id="user-badge" class="badge-tag">Conectando...</span>
+          <span id="user-plan-badge" class="plan-pill">PRO</span>
+        </div>
+        <button id="btn-logout" class="btn btn-sm btn-secondary" title="Cambiar de usuario o registrarse" aria-label="Cambiar cuenta">Cambiar Cuenta</button>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="dashboard-grid">
+      <!-- Card: Exposure Score -->
+      <section class="card cyber-card score-card">
+        <div class="card-header">
+          <h2>Índice de Exposición</h2>
+          <span class="pill-info">Riesgo en Tiempo Real</span>
+        </div>
+        <div class="score-display">
+          <div class="gauge-ring">
+            <div id="score-number" class="score-val">--</div>
+            <span class="score-label">/ 100</span>
+          </div>
+          <div class="score-details">
+            <div class="risk-badge" id="risk-badge">Calculando...</div>
+            <p id="risk-summary" class="risk-summary">Analizando identidades y plataformas expuestas.</p>
+          </div>
+        </div>
+        <div class="metrics-row">
+          <div class="metric-item">
+            <span class="metric-label">Identidades</span>
+            <span id="metric-identities" class="metric-val">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Filtraciones</span>
+            <span id="metric-breaches" class="metric-val danger">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Borrado GDPR</span>
+            <span id="metric-deletions" class="metric-val success">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card: Quick Scan & Audit -->
+      <section class="card cyber-card">
+        <div class="card-header">
+          <h2>Escáner de Filtraciones (HIBP)</h2>
+          <span class="pill-secure">Zero-Knowledge</span>
+        </div>
+        <p class="card-desc">Ejecuta una auditoría profunda sobre tus correos registrados para detectar brechas públicas
+          y stealer logs.</p>
+        <div class="scan-action-box">
+          <button id="btn-run-scan" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="m10 15 5-3-5-3v6z" />
+            </svg>
+            <span>Iniciar Escaneo Global</span>
+          </button>
+          <span id="scan-status" class="scan-status-text">Listo para auditar</span>
+        </div>
+
+        <!-- Password Auditor (k-Anonymity) -->
+        <div class="pwd-audit-box" id="pwd-audit-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <h3>Auditor de Claves (k-Anonymity)</h3>
+            <span class="pill-secure" style="font-size: 0.65rem;">Cloudflare SHA-1</span>
+          </div>
+          <p class="micro-text">Comprueba si una contraseña fue vulnerada. La clave nunca sale de tu equipo.</p>
+          <div class="input-group" style="position: relative;">
+            <input type="password" id="input-pwd" name="password" placeholder="Ingresa contraseña a auditar..."
+              autocomplete="current-password" class="cyber-input" style="flex: 1; padding-right: 42px;" aria-label="Contraseña a auditar">
+            <button type="button" id="btn-toggle-pwd-vis" class="btn-eye-toggle" title="Mostrar u ocultar contraseña" aria-label="Mostrar u ocultar contraseña">👁️</button>
+            <button id="btn-check-pwd" class="btn btn-secondary">Auditar</button>
+          </div>
+          <div id="pwd-result" class="pwd-feedback"></div>
+        </div>
+      </section>
+
+      <!-- Card: Monitored Identities -->
+      <section class="card cyber-card col-span-2">
+        <div class="card-header">
+          <h2>Identidades Monitoreadas</h2>
+          <button id="btn-open-identity-modal" class="btn btn-sm btn-outline">+ Agregar Identidad</button>
+        </div>
+        <div id="identities-list" class="identities-table-wrapper">
+          <!-- Dinámico -->
+          <div class="skeleton-loader">Cargando identidades protegidas...</div>
+        </div>
+      </section>
+
+      <!-- Card: Filtraciones Detectadas & Centro de Remediación Táctica -->
+      <section id="section-breaches" class="card cyber-card col-span-2">
+        <div class="card-header">
+          <div>
+            <h2>Filtraciones Detectadas & Centro de Remediación Táctica</h2>
+            <p class="card-desc">Detalle forense de plataformas vulneradas que exponen tu identidad y acciones inmediatas para neutralizar el riesgo.</p>
+          </div>
+          <div id="breaches-header-stats" style="display: flex; gap: 8px; align-items: center;">
+            <span id="badge-active-breaches" class="badge-tag" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">
+              0 Críticas
+            </span>
+            <span id="badge-mitigated-breaches" class="badge-tag" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">
+              0 Mitigadas
+            </span>
+          </div>
+        </div>
+        <div id="breaches-list" class="breaches-list-wrapper">
+          <div class="skeleton-loader">Cargando reporte de incidentes...</div>
+        </div>
+      </section>
+
+      <!-- Card: Deletion Engine (Plataformas GDPR) -->
+      <section class="card cyber-card col-span-2">
+        <div class="card-header">
+          <div>
+            <h2>Motor de Eliminación (Derecho al Olvido Art. 17)</h2>
+            <p class="card-desc">Orquesta solicitudes directas y desvinculación definitiva en plataformas web.</p>
+          </div>
+          <div class="filter-controls" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="filter-search" class="cyber-input"
+              placeholder="Buscar plataforma (ej. Tinder, PayPal)..." style="min-width: 220px;"
+              aria-label="Buscar plataforma">
+            <select id="filter-category" class="cyber-select" aria-label="Filtrar por categoría">
+              <option value="">Todas las categorías (50+)</option>
+              <option value="social">Redes Sociales</option>
+              <option value="citas">Apps de Citas</option>
+              <option value="bigtech">Big Tech & Cloud</option>
+              <option value="streaming">Streaming & Videojuegos</option>
+              <option value="fintech_comercio">Fintech & Comercio</option>
+              <option value="mensajeria_comunidad">Mensajería & Comunidad</option>
+              <option value="data_brokers">Brokers de Datos (Privacidad Crítica)</option>
+            </select>
+          </div>
+        </div>
+        <div id="platforms-grid" class="platforms-grid">
+          <!-- Dinámico -->
+          <div class="skeleton-loader">Cargando catálogo de plataformas...</div>
+        </div>
+      </section>
+
+      <!-- Card: Active Deletion Requests -->
+      <section class="card cyber-card col-span-2">
+        <div class="card-header">
+          <h2>Trazabilidad de Solicitudes</h2>
+          <span class="badge-tag">Plazo Legal: 30 Días</span>
+        </div>
+        <div id="requests-list" class="requests-list">
+          <!-- Dinámico -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Agregar Identidad -->
+    <div id="identity-modal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Añadir Identidad para Monitoreo</h3>
+          <button id="btn-close-modal" class="btn-icon" aria-label="Cerrar modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label for="new-id-type">Tipo de Identidad</label>
+          <select id="new-id-type" class="cyber-select full-width">
+            <option value="email">Correo Electrónico</option>
+            <option value="phone">Número Telefónico</option>
+            <option value="username">Nombre de Usuario</option>
+          </select>
+
+          <label for="new-id-value" id="label-new-id-value">Correo Electrónico a Monitorear</label>
+          <input type="email" id="new-id-value" name="email" class="cyber-input full-width font-mono" placeholder="ejemplo@correo.com" autocomplete="email" autocapitalize="none" spellcheck="false">
+          <p id="help-new-id-value" style="font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; margin-bottom: 12px; font-family: var(--font-mono);">
+            // RASTREO EN BRECHAS MASIVAS HIBP Y COMBOS GLOBALES //
+          </p>
+
+          <label for="new-id-label">Etiqueta (Opcional)</label>
+          <input type="text" id="new-id-label" class="cyber-input full-width"
+            placeholder="ej. Personal, Trabajo, Compras">
+        </div>
+        <div class="modal-footer">
+          <button id="btn-cancel-id" class="btn btn-secondary">Cancelar</button>
+          <button id="btn-save-id" class="btn btn-primary">Registrar Identidad</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Solicitud GDPR Detalle -->
+    <div id="gdpr-modal" class="modal-backdrop hidden">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3 id="gdpr-modal-title">Solicitud de Supresión RGPD</h3>
+          <button id="btn-close-gdpr-modal" class="btn-icon" aria-label="Cerrar modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="gdpr-instructions" class="instructions-text"></p>
+          <div class="gdpr-template-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="gdpr-template-text" style="margin: 0;">Plantilla Formal Generada (Lista para copiar o enviar):</label>
+              <button id="btn-copy-gdpr" type="button" class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.72rem;">📋 Copiar Plantilla</button>
+            </div>
+            <textarea id="gdpr-template-text" class="cyber-textarea" readonly rows="8"></textarea>
+          </div>
+          <div class="action-links" id="gdpr-action-links"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-close-gdpr" class="btn btn-secondary">Cerrar</button>
+          <button id="btn-mark-sent" class="btn btn-primary">Marcar como Enviada</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Gestión de Planes en el Lobby -->
+    <div id="plan-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="plan-modal-title">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3 id="plan-modal-title">Nivel de Protección de la Bóveda</h3>
+          <button id="btn-close-plan-modal" class="btn-icon" aria-label="Cerrar modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="micro-text" style="margin-bottom: 16px;">
+            Modifica el nivel de blindaje operativo de tu identidad en el lobby de Sentinel.
+          </p>
+          <div class="platforms-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+            <div class="platform-card" style="border: 1px solid rgba(148, 163, 184, 0.3);">
+              <div class="platform-top">
+                <div>
+                  <h4 class="platform-name">FREE</h4>
+                  <span class="platform-cat">Auditoría Esencial</span>
+                </div>
+                <span class="badge-tag" style="color: #94a3b8;">Básico</span>
+              </div>
+              <p class="card-desc" style="margin: 10px 0; font-size: 0.78rem;">Auditoría k-Anonymity y catálogo completo de 50+ plataformas.</p>
+              <button class="btn btn-sm btn-secondary full-width btn-select-lobby-plan" data-plan="free" style="margin-top: 12px;">Activar Free</button>
+            </div>
+
+            <div class="platform-card" style="border: 1px solid rgba(0, 229, 255, 0.4);">
+              <div class="platform-top">
+                <div>
+                  <h4 class="platform-name" style="color: var(--color-electric-blue);">GUARD</h4>
+                  <span class="platform-cat">Escudo Activo</span>
+                </div>
+                <span class="badge-tag" style="color: var(--color-electric-blue); border-color: rgba(0, 229, 255, 0.4);">Recomendado</span>
+              </div>
+              <p class="card-desc" style="margin: 10px 0; font-size: 0.78rem;">Monitoreo continuo de brechas HIBP y alerta de filtraciones.</p>
+              <button class="btn btn-sm btn-primary full-width btn-select-lobby-plan" data-plan="guard" style="margin-top: 12px;">Activar Guard</button>
+            </div>
+
+            <div class="platform-card" style="border: 1px solid rgba(245, 158, 11, 0.4);">
+              <div class="platform-top">
+                <div>
+                  <h4 class="platform-name" style="color: #f59e0b;">SENTINEL PRO</h4>
+                  <span class="platform-cat">Soberanía Total</span>
+                </div>
+                <span class="badge-tag" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);">Máximo</span>
+              </div>
+              <p class="card-desc" style="margin: 10px 0; font-size: 0.78rem;">Orquestador RGPD Art. 17, plantillas legales y reporte ejecutivo PDF.</p>
+              <button class="btn btn-sm btn-outline full-width btn-select-lobby-plan" data-plan="sentinel" style="margin-top: 12px;">Activar Sentinel Pro</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Control de Acceso Sentinel (Frío, Profesional & Soberano) -->
+    <div id="onboarding-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+      <div class="modal-card modal-auth-cold">
+        <div class="auth-header-cold">
+          <div class="sentinel-shield-cold">
+            <img src="logo_sentinel.png" alt="Sentinel X-Men" class="sentinel-modal-robot" />
+          </div>
+          <h2 id="onboarding-title" class="auth-brand-cold">SENTINEL</h2>
+          <p class="auth-sub-cold">CONTROL DE ACCESO // BÓVEDA DE SOBERANÍA</p>
+        </div>
+
+        <!-- Google SSO (Acceso Rápido Federado) -->
+        <div class="social-auth-box">
+          <button type="button" id="btn-google-auth" class="btn btn-google full-width" aria-label="Continuar con Google">
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.27 21.41 7.33 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.13-1.57.38-2.29V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.13z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.27 2.59 1.25 6.58l4.03 3.13c.95-2.83 3.6-4.96 6.72-4.96z"/>
+            </svg>
+            <span>Continuar con Google</span>
+          </button>
+        </div>
+
+        <div class="cold-divider">
+          <span>// O AUTENTICACIÓN DIRECTA //</span>
+        </div>
+
+        <div id="auth-feedback" class="auth-feedback-box hidden" role="alert"></div>
+
+        <!-- Formulario Autenticación Unificado (Login / Registro) -->
+        <form id="form-auth" novalidate>
+          <div class="form-group" id="group-auth-name" style="display: none;">
+            <label for="auth-name">NOMBRE O ALIAS</label>
+            <input type="text" id="auth-name" class="cyber-input full-width font-mono" placeholder="Tu identificador público" autocomplete="name">
+          </div>
+
+          <div class="form-group">
+            <label for="auth-identifier">USUARIO O CORREO ELECTRÓNICO</label>
+            <input type="text" id="auth-identifier" class="cyber-input full-width font-mono" placeholder="identidad@segura.com o alias" required autocomplete="username">
+          </div>
+
+          <div class="form-group">
+            <label for="auth-password">CLAVE DE SEGURIDAD</label>
+            <input type="password" id="auth-password" class="cyber-input full-width font-mono" placeholder="••••••••••••" required autocomplete="current-password">
+          </div>
+
+          <div class="onboarding-actions" style="margin-top: 18px;">
+            <button type="submit" id="btn-auth-submit" class="btn btn-primary full-width font-mono" aria-label="Autenticar">
+              [ INICIAR SESIÓN ]
+            </button>
+          </div>
+
+          <div class="auth-mode-switcher">
+            <button type="button" id="btn-toggle-auth-mode" class="auth-toggle-link" aria-label="Alternar modo de autenticación">
+              ¿Primera vez? Crear nueva identidad
+            </button>
+          </div>
+        </form>
+
+        <!-- Acceso Arconte Soberano (Mauro) -->
+        <div class="sovereign-quick-access">
+          <button id="btn-master-access" type="button" class="btn btn-sm btn-cold-outline full-width font-mono" aria-label="Acceder como Arconte Soberano">
+            TERMINAL SOBERANA (MAURO // MASTER ARCHON)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="cyber-footer">
+      <p>SENTINEL v1.0.0 — Zero-Leakage Privacy Standard & Cyber-Obsidian Royal Engine</p>
+    </footer>
+  </div>
+
+  <script src="js/domUtils.js?v=1.4.0"></script>
+  <script src="js/localVault.js?v=1.4.0"></script>
+  <script src="js/sessionManager.js?v=1.4.0"></script>
+  <script src="js/identitiesManager.js?v=1.4.0"></script>
+  <script src="js/breachesManager.js?v=1.4.0"></script>
+  <script src="js/gdprEngine.js?v=1.4.0"></script>
+  <script src="js/pwdAuditor.js?v=1.4.0"></script>
+  <script src="app.js?v=1.4.0"></script>
+</body>
+
+</html>
