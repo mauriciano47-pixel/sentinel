@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "https://sentinel-app.up.railway.app/$1"
+      "destination": "https://mauriciano47-pixel.github.io/sentinel/$1"
     }
   ]
 }
