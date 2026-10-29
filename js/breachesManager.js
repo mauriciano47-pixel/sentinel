@@ -196,35 +196,39 @@ async function toggleBreachMitigation(breachId) {
   }
 }
 
+function setScanStatus(text, disabled = null) {
+  const el = document.getElementById('scan-status');
+  if (el && text) el.textContent = text;
+  const btn = document.getElementById('btn-run-scan');
+  if (btn && disabled !== null) btn.disabled = disabled;
+}
+
+async function refreshScanViews() {
+  if (typeof loadExposureScore === 'function') await loadExposureScore();
+  if (typeof loadIdentities === 'function') await loadIdentities();
+  await loadBreaches();
+}
+
 async function runGlobalScan() {
-  const session = getSession();
-  if (!session) {
+  if (!getSession()) {
     if (typeof showOnboardingModal === 'function') showOnboardingModal();
     return;
   }
 
-  const btn = document.getElementById('btn-run-scan');
-  const elScanStatus = document.getElementById('scan-status');
-  if (btn) btn.disabled = true;
-  if (elScanStatus) elScanStatus.textContent = 'Auditoría en curso contra catálogos HIBP...';
-
+  setScanStatus('Auditoría en curso contra catálogos HIBP...', true);
   try {
     const res = await fetchAuth('/scan', { method: 'POST' });
     const data = await res.json();
-
     if (!res.ok) {
-      if (elScanStatus) elScanStatus.textContent = data.error || 'Error al ejecutar escaneo';
+      setScanStatus(data.error || 'Error al ejecutar escaneo');
       return;
     }
-
-    if (elScanStatus) elScanStatus.textContent = `Escaneo finalizado: ${data.totalNewBreaches} filtraciones añadidas.`;
-    if (typeof loadExposureScore === 'function') await loadExposureScore();
-    if (typeof loadIdentities === 'function') await loadIdentities();
-    await loadBreaches();
+    setScanStatus(`Escaneo finalizado: ${data.totalNewBreaches} filtraciones añadidas.`);
+    await refreshScanViews();
   } catch (err) {
-    if (elScanStatus) elScanStatus.textContent = 'Fallo de red en escaneo.';
+    setScanStatus('Fallo de red en escaneo.');
   } finally {
-    if (btn) btn.disabled = false;
+    setScanStatus(null, false);
   }
 }
 

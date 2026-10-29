@@ -15,6 +15,7 @@ const path = require('node:path');
 const db = require('../src/config/db');
 
 const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
+const logInfo = (msg = '') => process.stdout.write(String(msg) + '\n');
 
 // Registro acumulativo de telemetría e inspección
 const inspectionLog = {
@@ -98,10 +99,10 @@ async function sendRequest({ method, endpoint, token, body, interpretationNote }
 }
 
 async function runSimulation() {
-  console.log('\n================================================================');
-  console.log('🛡️  SENTINEL — SIMULACIÓN & AUDITORÍA DE USUARIOS ARTIFICIALES  🛡️');
-  console.log('================================================================');
-  console.log(`🌐 Endpoint objetivo: ${BASE_URL}\n`);
+  logInfo('\n================================================================');
+  logInfo('🛡️  SENTINEL — SIMULACIÓN & AUDITORÍA DE USUARIOS ARTIFICIALES  🛡️');
+  logInfo('================================================================');
+  logInfo(`🌐 Endpoint objetivo: ${BASE_URL}\n`);
 
   // Asegurar carpetas scratch
   const scratchDir = path.resolve(process.cwd(), 'scratch');
@@ -119,7 +120,7 @@ async function runSimulation() {
   // -------------------------------------------------------------
   // USUARIO ARTIFICIAL 1: Elena Rostova
   // -------------------------------------------------------------
-  console.log('▶️ [1/2] Iniciando interacción de Usuario Artificial 1: Elena Rostova...');
+  logInfo('▶️ [1/2] Iniciando interacción de Usuario Artificial 1: Elena Rostova...');
   const user1Data = {
     profile: {
       displayName: 'Elena Rostova',
@@ -143,7 +144,7 @@ async function runSimulation() {
   });
   user1Data.interactions.push(u1Reg);
   const u1Token = u1Reg.responsePayload.token || u1Reg.responsePayload.user?.id;
-  console.log(`   ✅ Registrada: ${user1Data.profile.displayName} (ID: ${u1Token})`);
+  logInfo(`   ✅ Registrada: ${user1Data.profile.displayName} (ID: ${u1Token})`);
 
   // 1.2 Verificación de Perfil
   const u1Me = await sendRequest({
@@ -209,7 +210,7 @@ async function runSimulation() {
     interpretationNote: 'Registra el handle público para rastreo de perfiles en combolists y bases de stealer logs.'
   });
   user1Data.interactions.push(u1Id4);
-  console.log(`   ✅ 4 identidades personales captadas para monitoreo soberano.`);
+  logInfo(`   ✅ 4 identidades personales captadas para monitoreo soberano.`);
 
   // 1.7 Escaneo Global de Filtraciones
   const u1Scan = await sendRequest({
@@ -219,7 +220,7 @@ async function runSimulation() {
     interpretationNote: 'Sentinel consulta todas las identidades activas del usuario, lanza escaneo contra la API de filtraciones (con fallback inteligente simulado si no hay API key comercial de HIBP) y registra cada brecha en la tabla breaches vinculada a la identidad.'
   });
   user1Data.interactions.push(u1Scan);
-  console.log(`   ✅ Escaneo de brechas ejecutado: ${u1Scan.responsePayload?.summary?.totalBreachesFound || 0} brechas registradas.`);
+  logInfo(`   ✅ Escaneo de brechas ejecutado: ${u1Scan.responsePayload?.summary?.totalBreachesFound || 0} brechas registradas.`);
 
   // 1.8 Auditoría Criptográfica de Contraseña k-Anonymity (Contraseña Robusta)
   const u1Pwd = await sendRequest({
@@ -232,7 +233,7 @@ async function runSimulation() {
     interpretationNote: 'PROTOCOLO ZERO-KNOWLEDGE: El servidor computa el hash SHA-1 de la contraseña. Trunca el hash tomando solo los primeros 5 caracteres (prefijo) y los consulta contra la API de Cloudflare/Pwned Passwords. Compara el sufijo localmente en memoria. La clave nunca se guarda ni viaja completa.'
   });
   user1Data.interactions.push(u1Pwd);
-  console.log(`   ✅ Auditoría k-Anonymity: ${u1Pwd.responsePayload?.breached ? 'VULNERADA' : 'SEGURA / NO FILTRADA'}`);
+  logInfo(`   ✅ Auditoría k-Anonymity: ${u1Pwd.responsePayload?.breached ? 'VULNERADA' : 'SEGURA / NO FILTRADA'}`);
 
   // 1.9 Ejercicio de Derechos: Solicitud de Supresión en Meta
   const u1Req1 = await sendRequest({
@@ -263,7 +264,7 @@ async function runSimulation() {
     interpretationNote: 'Solicitud dirigida a broker de datos. El sistema vincula la plantilla legal formal con advertencia de sanciones ante el regulador si no se responde en el plazo legal.'
   });
   user1Data.interactions.push(u1Req2);
-  console.log(`   ✅ 2 solicitudes legales RGPD tramitadas con cuenta regresiva de 30 días.`);
+  logInfo(`   ✅ 2 solicitudes legales RGPD tramitadas con cuenta regresiva de 30 días.`);
 
   // 1.11 Consulta de Índice de Exposición
   const u1Exposure = await sendRequest({
@@ -282,14 +283,14 @@ async function runSimulation() {
     interpretationNote: 'El servicio reportService compila vectorialmente con PDFKit un documento formal A4 Cyber-Obsidian con el diagnóstico del usuario, brechas detectadas y trazabilidad de solicitudes de eliminación.'
   });
   user1Data.interactions.push(u1Pdf);
-  console.log(`   ✅ Reporte PDF certificado generado: ${u1Pdf.responsePayload?.sizeBytes} bytes.`);
+  logInfo(`   ✅ Reporte PDF certificado generado: ${u1Pdf.responsePayload?.sizeBytes} bytes.`);
 
   inspectionLog.users.push(user1Data);
 
   // -------------------------------------------------------------
   // USUARIO ARTIFICIAL 2: Carlos Mendoza
   // -------------------------------------------------------------
-  console.log('\n▶️ [2/2] Iniciando interacción de Usuario Artificial 2: Carlos Mendoza...');
+  logInfo('\n▶️ [2/2] Iniciando interacción de Usuario Artificial 2: Carlos Mendoza...');
   const user2Data = {
     profile: {
       displayName: 'Carlos Mendoza',
@@ -313,7 +314,7 @@ async function runSimulation() {
   });
   user2Data.interactions.push(u2Reg);
   const u2Token = u2Reg.responsePayload.token || u2Reg.responsePayload.user?.id;
-  console.log(`   ✅ Registrado: ${user2Data.profile.displayName} (ID: ${u2Token})`);
+  logInfo(`   ✅ Registrado: ${user2Data.profile.displayName} (ID: ${u2Token})`);
 
   // 2.2 Captación de Datos Personales: Identidad 1 (Email Personal)
   const u2Id1 = await sendRequest({
@@ -356,7 +357,7 @@ async function runSimulation() {
     interpretationNote: 'Identidad para auditar plataformas de citas donde la privacidad suele ser crítica.'
   });
   user2Data.interactions.push(u2Id3);
-  console.log(`   ✅ 3 identidades personales captadas para monitoreo soberano.`);
+  logInfo(`   ✅ 3 identidades personales captadas para monitoreo soberano.`);
 
   // 2.5 Escaneo Global de Filtraciones
   const u2Scan = await sendRequest({
@@ -378,7 +379,7 @@ async function runSimulation() {
     interpretationNote: 'Prueba con contraseña de alta vulnerabilidad. El servidor obtiene el hash SHA-1 "CBFDAC6008F9CAB4083784CBD1874F76618D2A97", consulta el prefijo "CBFDA" y detecta que ha aparecido cientos de miles de veces en brechas públicas, arrojando estado breached=true con severidad crítica.'
   });
   user2Data.interactions.push(u2Pwd);
-  console.log(`   ✅ Auditoría k-Anonymity (password123): Filtraciones detectadas (${u2Pwd.responsePayload?.occurrences || 0} apariciones).`);
+  logInfo(`   ✅ Auditoría k-Anonymity (password123): Filtraciones detectadas (${u2Pwd.responsePayload?.occurrences || 0} apariciones).`);
 
   // 2.7 Ejercicio de Derechos: Supresión en Tinder
   const u2Req1 = await sendRequest({
@@ -409,7 +410,7 @@ async function runSimulation() {
     interpretationNote: 'Petición sobre Big Tech (Google). Mapea el procedimiento oficial de borrado y seguimiento legal.'
   });
   user2Data.interactions.push(u2Req2);
-  console.log(`   ✅ 2 solicitudes de eliminación tramitadas.`);
+  logInfo(`   ✅ 2 solicitudes de eliminación tramitadas.`);
 
   // 2.9 Generación de Reporte PDF
   const u2Pdf = await sendRequest({
@@ -419,33 +420,33 @@ async function runSimulation() {
     interpretationNote: 'Generación del reporte formal en PDF para Carlos Mendoza, documentando su alto índice de exposición debido a la contraseña comprometida y sus solicitudes en curso.'
   });
   user2Data.interactions.push(u2Pdf);
-  console.log(`   ✅ Reporte PDF certificado generado: ${u2Pdf.responsePayload?.sizeBytes} bytes.`);
+  logInfo(`   ✅ Reporte PDF certificado generado: ${u2Pdf.responsePayload?.sizeBytes} bytes.`);
 
   inspectionLog.users.push(user2Data);
 
   // -------------------------------------------------------------
   // GUARDAR REGISTROS DE INSPECCIÓN FORENSE
   // -------------------------------------------------------------
-  console.log('\n📝 Guardando bitácora detallada de inspección...');
+  logInfo('\n📝 Guardando bitácora detallada de inspección...');
   const jsonPath = path.join(scratchDir, 'inspeccion_interaccion_usuarios.json');
   fs.writeFileSync(jsonPath, JSON.stringify(inspectionLog, null, 2), 'utf8');
-  console.log(`   💾 Archivo JSON estructurado: ${jsonPath}`);
+  logInfo(`   💾 Archivo JSON estructurado: ${jsonPath}`);
 
   // Generar reporte en Markdown legible
   const mdReport = generateMarkdownReport(inspectionLog);
   const mdPath = path.join(scratchDir, 'INFORME_INSPECCION_USUARIOS_ARTIFICIALES.md');
   fs.writeFileSync(mdPath, mdReport, 'utf8');
-  console.log(`   📄 Informe Markdown detallado: ${mdPath}`);
+  logInfo(`   📄 Informe Markdown detallado: ${mdPath}`);
 
   // Guardar copia permanente en Cerebro Obsidian
   const obsidianDir = 'C:\\Users\\mauro\\OneDrive\\Desktop\\Cerebros_Obsidian\\cerebro_sentinel';
   if (fs.existsSync(obsidianDir)) {
     const obsidianPath = path.join(obsidianDir, '05_Auditoria_Interaccion_Usuarios_Artificiales.md');
     fs.writeFileSync(obsidianPath, mdReport, 'utf8');
-    console.log(`   🧠 Sincronizado en Obsidian: ${obsidianPath}`);
+    logInfo(`   🧠 Sincronizado en Obsidian: ${obsidianPath}`);
   }
 
-  console.log('\n🎉 ¡Simulación e inspección completadas satisfactoriamente al 100%!\n');
+  logInfo('\n🎉 ¡Simulación e inspección completadas satisfactoriamente al 100%!\n');
 }
 
 function generateMarkdownReport(log) {

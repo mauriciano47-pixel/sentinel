@@ -104,7 +104,6 @@ async function fetchAuth(endpoint, options = {}) {
     }
 
     if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/scan/password')) {
-      console.warn('[Sentinel] Sesión no autorizada o expirada');
       clearSession();
     }
 

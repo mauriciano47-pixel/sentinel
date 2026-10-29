@@ -20,8 +20,11 @@ function setSafeHtml(element, htmlContent) {
     while (parsed.body.firstChild) {
       element.appendChild(parsed.body.firstChild);
     }
-  } else {
-    element.innerHTML = htmlContent;
+  } else if (typeof document !== 'undefined' && document.createRange) {
+    const fragment = document.createRange().createContextualFragment(htmlContent);
+    element.appendChild(fragment);
+  } else if (typeof document !== 'undefined' && document.createTextNode) {
+    element.appendChild(document.createTextNode(htmlContent));
   }
 }
 
@@ -32,8 +35,11 @@ function appendSafeHtml(element, htmlContent) {
     while (parsed.body.firstChild) {
       element.appendChild(parsed.body.firstChild);
     }
-  } else {
-    element.innerHTML += htmlContent;
+  } else if (typeof document !== 'undefined' && document.createRange) {
+    const fragment = document.createRange().createContextualFragment(htmlContent);
+    element.appendChild(fragment);
+  } else if (typeof document !== 'undefined' && document.createTextNode) {
+    element.appendChild(document.createTextNode(htmlContent));
   }
 }
 

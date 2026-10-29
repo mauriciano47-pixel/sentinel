@@ -127,62 +127,47 @@ async function clientSideKAnonymity(password) {
   }
 }
 
-// Despachador universal de la Bóveda Local
-async function handleLocalVault(endpoint, options = {}) {
-  const method = (options.method || 'GET').toUpperCase();
-  const urlObj = new URL(endpoint, 'http://localhost');
-  const path = urlObj.pathname.replace(/^\/api\/v1/, '');
-  const searchParams = urlObj.searchParams;
-
-  // 1. Catálogo de Plataformas
+// Sub-manejadores modulares desacoplados (McCabe V(G) <= 5)
+async function handlePlatformsEndpoint(path, method, searchParams) {
+  const platforms = await getVaultPlatforms();
   if (path === '/platforms' && method === 'GET') {
-    const platforms = await getVaultPlatforms();
     const cat = searchParams.get('category') || '';
     const search = (searchParams.get('search') || '').toLowerCase().trim();
-
     let filtered = platforms;
-    if (cat) {
-      filtered = filtered.filter(p => p.category === cat);
-    }
-    if (search) {
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(search) || (p.category && p.category.toLowerCase().includes(search)));
-    }
+    if (cat) filtered = filtered.filter(p => p.category === cat);
+    if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search) || (p.category && p.category.toLowerCase().includes(search)));
 
     const requests = getStored(STORAGE_KEYS.REQUESTS);
     const enriched = filtered.map(p => {
       const userReq = requests.find(r => r.platform_id === p.id);
       return Object.assign({}, p, { userStatus: userReq ? userReq.status : null });
     });
-
     return new LocalVaultResponse({ platforms: enriched });
   }
 
-  // 1.1 Plataforma por ID
   if (path.startsWith('/platforms/') && method === 'GET') {
     const id = parseInt(path.split('/')[2], 10);
-    const platforms = await getVaultPlatforms();
     const platform = platforms.find(p => p.id === id) || platforms[0];
-
     const session = getStored(STORAGE_KEYS.USER, null);
     const uName = (session && session.user && session.user.display_name) || '[Tu Nombre y Apellidos]';
     const uEmail = (session && session.user && session.user.email) || '[Tu Correo Electrónico]';
-
     const customized = typeof generateGdprNotice === 'function'
       ? generateGdprNotice(platform ? platform.name : 'Plataforma', uName, uEmail)
-      : platform.instructions;
-
+      : (platform ? platform.instructions : '');
     return new LocalVaultResponse({ platform, customizedGdprTemplate: customized });
   }
 
-  // 2. Identidades
+  return new LocalVaultResponse({ platforms });
+}
+
+function handleIdentitiesEndpoint(path, method, options) {
+  let identities = getStored(STORAGE_KEYS.IDENTITIES);
   if (path === '/identities' && method === 'GET') {
-    const identities = getStored(STORAGE_KEYS.IDENTITIES);
     return new LocalVaultResponse({ identities });
   }
 
   if (path === '/identities' && method === 'POST') {
     const body = options.body ? JSON.parse(options.body) : {};
-    const identities = getStored(STORAGE_KEYS.IDENTITIES);
     const newId = {
       id: 'id_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
       type: body.type,
@@ -199,16 +184,18 @@ async function handleLocalVault(endpoint, options = {}) {
 
   if (path.startsWith('/identities/') && method === 'DELETE') {
     const id = path.split('/')[2];
-    let identities = getStored(STORAGE_KEYS.IDENTITIES);
     identities = identities.filter(i => i.id !== id);
     setStored(STORAGE_KEYS.IDENTITIES, identities);
     return new LocalVaultResponse({ success: true, message: 'Identidad eliminada' });
   }
 
-  // 3. Solicitudes GDPR
+  return new LocalVaultResponse({ identities });
+}
+
+async function handleRequestsEndpoint(path, method, options) {
+  const requests = getStored(STORAGE_KEYS.REQUESTS);
   if (path === '/requests' && method === 'GET') {
-    const raw = getStored(STORAGE_KEYS.REQUESTS);
-    const enriched = raw.map(enrichLocalDeadline);
+    const enriched = requests.map(enrichLocalDeadline);
     const summary = {
       total: enriched.length,
       completed: enriched.filter(r => r.status === 'completed').length,
@@ -221,10 +208,8 @@ async function handleLocalVault(endpoint, options = {}) {
 
   if (path === '/requests' && method === 'POST') {
     const body = options.body ? JSON.parse(options.body) : {};
-    const requests = getStored(STORAGE_KEYS.REQUESTS);
     const platforms = await getVaultPlatforms();
     const plat = platforms.find(p => p.id === body.platformId) || { id: body.platformId || 999, name: body.platformName || 'Plataforma' };
-
     const newReq = {
       id: 'req_' + Date.now(),
       platform_id: plat.id,
@@ -237,71 +222,66 @@ async function handleLocalVault(endpoint, options = {}) {
       sent_at: new Date().toISOString(),
       created_at: new Date().toISOString()
     };
-
     requests.unshift(newReq);
     setStored(STORAGE_KEYS.REQUESTS, requests);
     return new LocalVaultResponse({ success: true, request: enrichLocalDeadline(newReq) }, 201);
   }
 
-  // 4. Auditoría de Contraseñas k-Anonymity
+  return new LocalVaultResponse({ requests });
+}
+
+function handleScanExposure(identities, requests, breaches) {
+  const activeBreaches = breaches.filter(b => !b.is_mitigated).length;
+  const completedDeletions = requests.filter(r => r.status === 'completed').length;
+  const verifiedIdentities = identities.length > 0 ? 1 : 0;
+
+  let score = 15;
+  score += activeBreaches * 20;
+  score += Math.min(identities.length * 4, 20);
+  score -= completedDeletions * 15;
+  score -= verifiedIdentities * 5;
+  score = Math.min(100, Math.max(0, Math.round(score)));
+
+  const riskLevel = score >= 65 ? 'Crítico' : (score >= 35 ? 'Moderado' : 'Bajo');
+  const riskColor = score >= 65 ? '#EF4444' : (score >= 35 ? '#F59E0B' : '#10B981');
+
+  return new LocalVaultResponse({
+    score,
+    riskLevel,
+    riskColor,
+    metrics: {
+      totalBreaches: breaches.length,
+      activeBreaches,
+      mitigatedBreaches: breaches.filter(b => b.is_mitigated).length,
+      monitoredIdentities: identities.length,
+      verifiedIdentities,
+      pendingDeletions: requests.filter(r => r.status !== 'completed').length,
+      completedDeletions
+    },
+    recommendations: [
+      activeBreaches > 0 ? `Tienes ${activeBreaches} brecha(s) activa(s): cambia tus contraseñas en los servicios afectados.` : '¡Bóveda Segura! No se detectan incidentes activos.',
+      'Habilita la autenticación de dos factores (2FA / Passkeys) en tus cuentas principales.',
+      'Ejerce tu Derecho de Supresión (Art. 17 RGPD) en los servicios que ya no utilices.'
+    ]
+  });
+}
+
+async function handleScanEndpoint(path, method, options) {
   if (path === '/scan/password' && method === 'POST') {
     const body = options.body ? JSON.parse(options.body) : {};
     const result = await clientSideKAnonymity(body.password);
     return new LocalVaultResponse(result);
   }
 
-  // 5. Escaneo de Filtraciones y Exposure Score
   if (path === '/scan/exposure' && method === 'GET') {
     const identities = getStored(STORAGE_KEYS.IDENTITIES);
     const requests = getStored(STORAGE_KEYS.REQUESTS);
     const breaches = getStored(STORAGE_KEYS.BREACHES);
-
-    const activeBreaches = breaches.filter(b => !b.is_mitigated).length;
-    const completedDeletions = requests.filter(r => r.status === 'completed').length;
-    const verifiedIdentities = identities.length > 0 ? 1 : 0;
-
-    let score = 15;
-    score += activeBreaches * 20;
-    score += Math.min(identities.length * 4, 20);
-    score -= completedDeletions * 15;
-    score -= verifiedIdentities * 5;
-    score = Math.min(100, Math.max(0, Math.round(score)));
-
-    let riskLevel = 'Bajo';
-    let riskColor = '#10B981';
-    if (score >= 65) {
-      riskLevel = 'Crítico';
-      riskColor = '#EF4444';
-    } else if (score >= 35) {
-      riskLevel = 'Moderado';
-      riskColor = '#F59E0B';
-    }
-
-    return new LocalVaultResponse({
-      score,
-      riskLevel,
-      riskColor,
-      metrics: {
-        totalBreaches: breaches.length,
-        activeBreaches,
-        mitigatedBreaches: breaches.filter(b => b.is_mitigated).length,
-        monitoredIdentities: identities.length,
-        verifiedIdentities,
-        pendingDeletions: requests.filter(r => r.status !== 'completed').length,
-        completedDeletions
-      },
-      recommendations: [
-        activeBreaches > 0 ? `Tienes ${activeBreaches} brecha(s) activa(s): cambia tus contraseñas en los servicios afectados.` : '¡Bóveda Segura! No se detectan incidentes activos.',
-        'Habilita la autenticación de dos factores (2FA / Passkeys) en tus cuentas principales.',
-        'Ejerce tu Derecho de Supresión (Art. 17 RGPD) en los servicios que ya no utilices.'
-      ]
-    });
+    return handleScanExposure(identities, requests, breaches);
   }
 
-  // 6. Feed de Brechas
   if (path === '/scan/breaches' && method === 'GET') {
-    const breaches = getStored(STORAGE_KEYS.BREACHES);
-    return new LocalVaultResponse({ breaches });
+    return new LocalVaultResponse({ breaches: getStored(STORAGE_KEYS.BREACHES) });
   }
 
   if (path.startsWith('/scan/breaches/') && path.endsWith('/mitigate') && method === 'PATCH') {
@@ -316,11 +296,9 @@ async function handleLocalVault(endpoint, options = {}) {
     return new LocalVaultResponse({ success: true });
   }
 
-  // 7. Iniciar Escaneo Global Local
   if (path === '/scan' && method === 'POST') {
     const identities = getStored(STORAGE_KEYS.IDENTITIES);
     const breaches = getStored(STORAGE_KEYS.BREACHES);
-
     let newCount = 0;
     for (const id of identities) {
       if (id.type === 'phone' && !breaches.some(b => b.identity_id === id.id && b.breach_name === 'Facebook-533M')) {
@@ -341,13 +319,34 @@ async function handleLocalVault(endpoint, options = {}) {
         newCount++;
       }
     }
-
     setStored(STORAGE_KEYS.BREACHES, breaches);
     setStored(STORAGE_KEYS.IDENTITIES, identities);
     return new LocalVaultResponse({ success: true, totalNewBreaches: newCount });
   }
 
-  // Fallback genérico exitoso
+  return new LocalVaultResponse({ success: true });
+}
+
+// Despachador universal de la Bóveda Local (McCabe V(G) <= 5)
+async function handleLocalVault(endpoint, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const urlObj = new URL(endpoint, 'http://localhost');
+  const path = urlObj.pathname.replace(/^\/api\/v1/, '');
+  const searchParams = urlObj.searchParams;
+
+  if (path.startsWith('/platforms')) {
+    return await handlePlatformsEndpoint(path, method, searchParams);
+  }
+  if (path.startsWith('/identities')) {
+    return handleIdentitiesEndpoint(path, method, options);
+  }
+  if (path.startsWith('/requests')) {
+    return await handleRequestsEndpoint(path, method, options);
+  }
+  if (path.startsWith('/scan')) {
+    return await handleScanEndpoint(path, method, options);
+  }
+
   return new LocalVaultResponse({ success: true });
 }
 
